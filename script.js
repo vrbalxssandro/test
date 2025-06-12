@@ -1,236 +1,233 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Constants and State ---
-    const CODE_LENGTH = 4;
-    const MAX_GUESSES = 6;
-    const COLORS = ['#FF4136', '#FF851B', '#FFDC00', '#2ECC40', '#0074D9', '#B10DC9']; // Red, Orange, Yellow, Green, Blue, Purple
-
-    let secretCode = [];
-    let currentRow = 0;
-    let currentGuess = [];
-    let isGameOver = false;
 
     // --- DOM Elements ---
     const gameBoard = document.getElementById('game-board');
     const colorPalette = document.getElementById('color-palette');
-    const deleteButton = document.getElementById('delete-button');
-    const submitButton = document.getElementById('submit-button');
-    
-    // Modals
-    const rulesButton = document.getElementById('rules-button');
+    const deleteBtn = document.getElementById('delete-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const rulesBtn = document.getElementById('rules-btn');
     const rulesModal = document.getElementById('rules-modal');
-    const closeRulesButton = document.getElementById('close-rules-button');
     const endGameModal = document.getElementById('end-game-modal');
-    const endGameTitle = document.getElementById('end-game-title');
-    const secretCodeDisplay = document.getElementById('secret-code-display');
-    const endGameSummary = document.getElementById('end-game-summary');
-    const shareButton = document.getElementById('share-button');
-    const playAgainButton = document.getElementById('play-again-button');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const shareBtn = document.getElementById('share-btn');
 
+    // --- Game Configuration ---
+    const COLORS = {
+        'Red': '#FF4136',
+        'Orange': '#FF851B',
+        'Yellow': '#FFDC00',
+        'Green': '#2ECC40',
+        'Blue': '#0074D9',
+        'Purple': '#B10DC9'
+    };
+    const NUM_ATTEMPTS = 6;
+    const CODE_LENGTH = 4;
+
+    // --- Game State ---
+    let secretCode = [];
+    let currentRowIndex = 0;
+    let currentGuess = [];
+    let isGameOver = false;
+    let shareableHistory = [];
 
     // --- Game Initialization ---
     function initializeGame() {
         // Reset state
         secretCode = [];
-        currentRow = 0;
+        currentRowIndex = 0;
         currentGuess = [];
         isGameOver = false;
+        shareableHistory = [];
 
-        // Generate secret code (unique colors)
-        const availableColors = [...COLORS];
+        // Generate secret code
+        const colorKeys = Object.keys(COLORS);
+        const shuffledColors = colorKeys.sort(() => 0.5 - Math.random());
         for (let i = 0; i < CODE_LENGTH; i++) {
-            const randomIndex = Math.floor(Math.random() * availableColors.length);
-            secretCode.push(availableColors.splice(randomIndex, 1)[0]);
+            secretCode.push(COLORS[shuffledColors[i]]);
         }
         console.log("Secret Code:", secretCode); // For debugging
 
-        // Create UI
-        createGameBoard();
-        createColorPalette();
-        
-        // Hide modal
-        endGameModal.style.display = 'none';
-    }
-
-    function createGameBoard() {
+        // Clear and create board
         gameBoard.innerHTML = '';
-        for (let i = 0; i < MAX_GUESSES; i++) {
-            const rowContainer = document.createElement('div');
-            rowContainer.className = 'guess-row-container';
-            rowContainer.id = `row-container-${i}`;
-
+        for (let i = 0; i < NUM_ATTEMPTS; i++) {
             const row = document.createElement('div');
             row.className = 'guess-row';
-            row.id = `row-${i}`;
+            row.dataset.rowIndex = i;
 
+            let tilesHTML = '';
             for (let j = 0; j < CODE_LENGTH; j++) {
-                const tile = document.createElement('div');
-                tile.className = 'guess-tile';
-                tile.id = `tile-${i}-${j}`;
-                row.appendChild(tile);
+                tilesHTML += `<div class="color-tile" data-col-index="${j}"></div>`;
             }
-            
-            const feedback = document.createElement('div');
-            feedback.className = 'feedback-container';
-            feedback.id = `feedback-${i}`;
-            
-            rowContainer.appendChild(row);
-            rowContainer.appendChild(feedback);
-            gameBoard.appendChild(rowContainer);
+
+            let pegsHTML = '';
+            for (let j = 0; j < CODE_LENGTH; j++) {
+                pegsHTML += '<div class="peg"></div>';
+            }
+
+            row.innerHTML = `
+                <div class="color-tiles">${tilesHTML}</div>
+                <div class="feedback-pegs">${pegsHTML}</div>
+            `;
+            gameBoard.appendChild(row);
         }
+
+        // Create color palette
+        colorPalette.innerHTML = '';
+        for (const colorName in COLORS) {
+            const btn = document.createElement('button');
+            btn.className = 'color-btn';
+            btn.style.backgroundColor = COLORS[colorName];
+            btn.dataset.color = COLORS[colorName];
+            colorPalette.appendChild(btn);
+        }
+
+        // Hide modals
+        rulesModal.hidden = true;
+        endGameModal.hidden = true;
     }
 
-    function createColorPalette() {
-        colorPalette.innerHTML = '';
-        COLORS.forEach(color => {
-            const button = document.createElement('button');
-            button.className = 'color-button';
-            button.style.backgroundColor = color;
-            button.dataset.color = color;
-            button.addEventListener('click', () => handleColorClick(color));
-            colorPalette.appendChild(button);
+    // --- UI Update Functions ---
+    function updateCurrentGuessUI() {
+        const currentRow = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`);
+        const tiles = currentRow.querySelectorAll('.color-tile');
+        tiles.forEach((tile, index) => {
+            if (currentGuess[index]) {
+                tile.style.backgroundColor = currentGuess[index];
+                tile.classList.add('filled');
+            } else {
+                tile.style.backgroundColor = 'transparent';
+                tile.classList.remove('filled');
+            }
         });
     }
 
+    function displayFeedback(feedback) {
+        const currentRow = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`);
+        const pegs = currentRow.querySelectorAll('.peg');
+        let historyString = '';
+        for (let i = 0; i < feedback.blackPegs; i++) {
+            pegs[i].classList.add('black-peg');
+            historyString += '⚫️';
+        }
+        for (let i = 0; i < feedback.whitePegs; i++) {
+            pegs[feedback.blackPegs + i].classList.add('white-peg');
+            historyString += '⚪️';
+        }
+        shareableHistory.push(historyString);
+    }
+
     // --- Game Logic ---
-    function handleColorClick(color) {
+    function handleColorSelect(e) {
         if (isGameOver || currentGuess.length >= CODE_LENGTH) return;
-        currentGuess.push(color);
-        updateCurrentRowUI();
+        const color = e.target.dataset.color;
+        if (color) {
+            currentGuess.push(color);
+            updateCurrentGuessUI();
+        }
     }
 
     function handleDelete() {
         if (isGameOver || currentGuess.length === 0) return;
         currentGuess.pop();
-        updateCurrentRowUI();
+        updateCurrentGuessUI();
     }
 
     function handleSubmit() {
-        if (isGameOver || currentGuess.length !== CODE_LENGTH) {
-            shakeCurrentRow();
+        if (isGameOver) return;
+
+        const currentRow = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`);
+        if (currentGuess.length !== CODE_LENGTH) {
+            currentRow.classList.add('shake');
+            setTimeout(() => currentRow.classList.remove('shake'), 500);
             return;
         }
 
-        const { correctPosition, correctColor } = checkGuess();
-        displayFeedback(correctPosition, correctColor);
+        const feedback = checkGuess();
+        displayFeedback(feedback);
 
-        if (correctPosition === CODE_LENGTH) {
+        if (feedback.blackPegs === CODE_LENGTH) {
             endGame(true);
-        } else if (currentRow === MAX_GUESSES - 1) {
+        } else if (currentRowIndex === NUM_ATTEMPTS - 1) {
             endGame(false);
         } else {
-            currentRow++;
+            currentRowIndex++;
             currentGuess = [];
         }
     }
-    
+
     function checkGuess() {
-        let correctPosition = 0;
-        let correctColor = 0;
-        const secretCopy = [...secretCode];
-        const guessCopy = [...currentGuess];
+        let blackPegs = 0;
+        let whitePegs = 0;
+        const tempSecret = [...secretCode];
+        const tempGuess = [...currentGuess];
 
-        // First pass: Check for correct color in correct position (black pegs)
-        for (let i = guessCopy.length - 1; i >= 0; i--) {
-            if (guessCopy[i] === secretCopy[i]) {
-                correctPosition++;
-                secretCopy.splice(i, 1);
-                guessCopy.splice(i, 1);
-            }
-        }
-
-        // Second pass: Check for correct color in wrong position (white pegs)
-        for (let i = 0; i < guessCopy.length; i++) {
-            const colorIndex = secretCopy.indexOf(guessCopy[i]);
-            if (colorIndex > -1) {
-                correctColor++;
-                secretCopy.splice(colorIndex, 1);
-            }
-        }
-        
-        return { correctPosition, correctColor };
-    }
-
-
-    // --- UI Updates ---
-    function updateCurrentRowUI() {
+        // First pass for black pegs (correct color and position)
         for (let i = 0; i < CODE_LENGTH; i++) {
-            const tile = document.getElementById(`tile-${currentRow}-${i}`);
-            if (currentGuess[i]) {
-                tile.style.backgroundColor = currentGuess[i];
-                tile.classList.add('filled');
-            } else {
-                tile.style.backgroundColor = '';
-                tile.classList.remove('filled');
+            if (tempGuess[i] === tempSecret[i]) {
+                blackPegs++;
+                tempSecret[i] = null; // Nullify to prevent re-checking
+                tempGuess[i] = null;
             }
         }
+
+        // Second pass for white pegs (correct color, wrong position)
+        for (let i = 0; i < CODE_LENGTH; i++) {
+            if (tempGuess[i] !== null) {
+                const foundIndex = tempSecret.indexOf(tempGuess[i]);
+                if (foundIndex !== -1) {
+                    whitePegs++;
+                    tempSecret[foundIndex] = null; // Nullify to prevent re-checking
+                }
+            }
+        }
+        return { blackPegs, whitePegs };
     }
 
-    function displayFeedback(blackPegs, whitePegs) {
-        const feedbackContainer = document.getElementById(`feedback-${currentRow}`);
-        feedbackContainer.innerHTML = '';
-        for (let i = 0; i < blackPegs; i++) {
-            const peg = document.createElement('div');
-            peg.className = 'peg black';
-            feedbackContainer.appendChild(peg);
-        }
-        for (let i = 0; i < whitePegs; i++) {
-            const peg = document.createElement('div');
-            peg.className = 'peg white';
-            feedbackContainer.appendChild(peg);
-        }
-    }
-    
-    function shakeCurrentRow() {
-        const rowContainer = document.getElementById(`row-container-${currentRow}`);
-        rowContainer.classList.add('shake');
-        setTimeout(() => rowContainer.classList.remove('shake'), 500);
-    }
-    
     function endGame(isWin) {
         isGameOver = true;
-        endGameTitle.textContent = isWin ? "You Won!" : "Game Over";
-        endGameSummary.textContent = isWin ? `You guessed the code in ${currentRow + 1} tries!` : "You ran out of guesses.";
+        const title = endGameModal.querySelector('#end-game-title');
+        const codeDisplay = endGameModal.querySelector('#secret-code-display');
+
+        title.textContent = isWin ? "You Won!" : "You Lost!";
         
-        // Display the secret code
-        const secretRow = document.createElement('div');
-        secretRow.className = 'guess-row';
+        codeDisplay.innerHTML = '';
         secretCode.forEach(color => {
             const tile = document.createElement('div');
-            tile.className = 'guess-tile';
+            tile.className = 'color-tile filled';
             tile.style.backgroundColor = color;
-            secretRow.appendChild(tile);
+            codeDisplay.appendChild(tile);
         });
-        secretCodeDisplay.innerHTML = '';
-        secretCodeDisplay.appendChild(secretRow);
-        
-        setTimeout(() => endGameModal.style.display = 'flex', 500);
-    }
 
-    function generateShareText() {
-        let text = `Color Code - ${isGameOver && endGameTitle.textContent === 'You Won!' ? currentRow + 1 : 'X'}/${MAX_GUESSES}\n\n`;
-        for (let i = 0; i <= currentRow; i++) {
-            const feedbackContainer = document.getElementById(`feedback-${i}`);
-            const blackPegs = feedbackContainer.getElementsByClassName('black').length;
-            const whitePegs = feedbackContainer.getElementsByClassName('white').length;
-            text += '⚫️'.repeat(blackPegs) + '⚪️'.repeat(whitePegs) + '\n';
+        endGameModal.hidden = false;
+    }
+    
+    // --- Modal and Event Listeners ---
+    rulesBtn.addEventListener('click', () => rulesModal.hidden = false);
+    rulesModal.querySelector('.close-btn').addEventListener('click', () => rulesModal.hidden = true);
+    
+    playAgainBtn.addEventListener('click', initializeGame);
+    
+    colorPalette.addEventListener('click', handleColorSelect);
+    deleteBtn.addEventListener('click', handleDelete);
+    submitBtn.addEventListener('click', handleSubmit);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            handleSubmit();
+        } else if (e.key === 'Backspace') {
+            handleDelete();
         }
-        return text;
-    }
+    });
 
-    // --- Event Listeners ---
-    deleteButton.addEventListener('click', handleDelete);
-    submitButton.addEventListener('click', handleSubmit);
-    playAgainButton.addEventListener('click', initializeGame);
-    
-    rulesButton.addEventListener('click', () => rulesModal.style.display = 'flex');
-    closeRulesButton.addEventListener('click', () => rulesModal.style.display = 'none');
-    
-    shareButton.addEventListener('click', () => {
-        const shareText = generateShareText();
-        navigator.clipboard.writeText(shareText).then(() => {
-            alert('Results copied to clipboard!');
+    shareBtn.addEventListener('click', () => {
+        const attempts = isGameOver && checkGuess().blackPegs === CODE_LENGTH ? currentRowIndex + 1 : 'X';
+        const resultText = `Color Code ${attempts}/${NUM_ATTEMPTS}\n\n${shareableHistory.join('\n')}`;
+        
+        navigator.clipboard.writeText(resultText).then(() => {
+            alert("Results copied to clipboard!");
         }).catch(err => {
-            console.error('Failed to copy: ', err);
+            console.error('Failed to copy results: ', err);
+            alert("Could not copy results.");
         });
     });
 
