@@ -1,312 +1,354 @@
-(function() {
-    'use strict';
-
-    // --- Configuration & Data ---
-    const GUESS_LIMIT = 6;
-    const PART_KEYS = ['sub', 'domain', 'tld', 'path'];
-    const REVEAL_DELAY = 200; // ms
-
-    const DATA_POOLS = {
-        sub: ['www', 'app', 'api', 'blog', 'shop', 'dev', 'status', 'mail', 'io', 'my'],
-        domain: ['google', 'github', 'discord', 'vercel', 'apple', 'openai', 'reddit', 'twitch', 'notion', 'figma'],
-        tld: ['com', 'org', 'net', 'io', 'dev', 'gg', 'tv', 'ai', 'so', 'app'],
-        path: ['users', 'login', 'search', 'posts', 'home', 'v1', 'explore', 'docs', 'new', 'dashboard']
-    };
-
-    const TARGET_URLS = [
-        { sub: 'www', domain: 'google', tld: 'com', path: 'search' },
-        { sub: 'api', domain: 'github', tld: 'com', path: 'users' },
-        { sub: 'app', domain: 'discord', tld: 'com', path: 'login' },
-        { sub: 'blog', domain: 'vercel', tld: 'com', path: 'posts' },
-        { sub: 'shop', domain: 'apple', tld: 'com', path: 'home' },
-        { sub: 'status', domain: 'openai', tld: 'com', path: 'home' },
-        { sub: 'www', domain: 'reddit', tld: 'com', path: 'explore' },
-        { sub: 'dev', domain: 'twitch', tld: 'tv', path: 'dashboard' },
-        { sub: 'www', domain: 'notion', tld: 'so', path: 'home' },
-        { sub: 'www', domain: 'figma', tld: 'com', path: 'login' },
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DATA ---
+    const EVENTS_POOL = [
+        { id: 1, name: 'Pyramids of Giza Built', year: -2550 },
+        { id: 2, name: 'Fall of Roman Empire', year: 476 },
+        { id: 3, name: 'Magna Carta Signed', year: 1215 },
+        { id: 4, name: 'Printing Press Invented', year: 1440 },
+        { id: 5, name: 'Columbus Reaches Americas', year: 1492 },
+        { id: 6, name: 'Protestant Reformation', year: 1517 },
+        { id: 7, name: 'Shakespeare Writes Hamlet', year: 1600 },
+        { id: 8, name: 'US Declaration of Independence', year: 1776 },
+        { id: 9, name: 'French Revolution Begins', year: 1789 },
+        { id: 10, name: 'Telephone Invented', year: 1876 },
+        { id: 11, name: 'Wright Brothers\' First Flight', year: 1903 },
+        { id: 12, name: 'Penicillin Discovered', year: 1928 },
+        { id: 13, name: 'WWII Ends', year: 1945 },
+        { id: 14, name: 'First Moon Landing', year: 1969 },
+        { id: 15, name: 'Berlin Wall Falls', year: 1989 },
+        { id: 16, name: 'World Wide Web Goes Public', year: 1993 },
     ];
+
+    // --- DOM ELEMENTS ---
+    const gameBoard = document.getElementById('game-board');
+    const eventPalette = document.getElementById('event-palette');
+    const submitBtn = document.getElementById('submit-btn');
+    const deleteBtn = document.getElementById('delete-btn');
+    const helpBtn = document.getElementById('help-btn');
+    const statsBtn = document.getElementById('stats-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const newGameBtn = document.getElementById('new-game-btn');
     
-    // Valid hosts that ARE NOT answers, crucial for the 'teal' feedback
-    const PROXY_HOSTS = [
-        'google.com', 'github.com', 'discord.com', 'vercel.com', 'apple.com', 'openai.com', 'reddit.com', 'twitch.tv', 'notion.so', 'figma.com',
-        'app.google.com', 'api.discord.com', 'app.vercel.com', 'api.openai.com', 'dev.to', 'status.github.com'
-    ];
+    // Modals
+    const helpModal = document.getElementById('help-modal');
+    const statsModal = document.getElementById('stats-modal');
+    const modalCloses = document.querySelectorAll('.modal-close');
 
-    // --- DOM Element Cache ---
-    const dom = {
-        grid: document.getElementById('guess-grid'),
-        dock: document.getElementById('component-dock'),
-        infoModal: document.getElementById('info-modal'),
-        summaryModal: document.getElementById('summary-modal'),
-        summaryTitle: document.getElementById('summary-title'),
-        finalUrlDisplay: document.getElementById('final-url-display')
-    };
-
-    // --- Application State ---
-    let state = {
-        targetUrl: {},
-        guesses: [],
+    // --- GAME STATE ---
+    let gameState = {
+        secretTimeline: [],
         currentAttempt: 0,
-        isInputDisabled: false,
+        guess: [],
+        isGameOver: false,
+        guessHistory: [],
     };
 
-    /**
-     * Checks the player's guess against the target URL.
-     * @returns {string[]} An array of feedback codes ('green', 'teal', 'gray').
-     */
-    function checkGuess() {
-        const guess = state.guesses[state.currentAttempt];
-        const feedback = Array(PART_KEYS.length).fill('gray');
+    let stats = {
+        gamesPlayed: 0,
+        wins: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+    };
+
+    // --- INITIALIZATION ---
+    function initializeGame() {
+        // Reset game state
+        gameState = {
+            secretTimeline: [],
+            currentAttempt: 0,
+            guess: [],
+            isGameOver: false,
+            guessHistory: [],
+        };
         
-        const targetHost = `${state.targetUrl.sub}.${state.targetUrl.domain}.${state.targetUrl.tld}`;
-        const guessedHost = `${guess.sub}.${guess.domain}.${guess.tld}`;
-        const isProxyHost = PROXY_HOSTS.includes(guessedHost) && guessedHost !== targetHost;
+        // Generate secret timeline
+        const shuffled = [...EVENTS_POOL].sort(() => 0.5 - Math.random());
+        const secretEvents = shuffled.slice(0, 4);
+        gameState.secretTimeline = secretEvents.sort((a, b) => a.year - b.year);
+        
+        // Load stats from localStorage
+        loadStats();
 
-        PART_KEYS.forEach((part, i) => {
-            if (guess[part] === state.targetUrl[part]) {
-                feedback[i] = 'green';
-            }
-        });
+        // Create UI
+        createGameBoard();
+        createEventPalette();
 
-        if (isProxyHost) {
-            ['sub', 'domain', 'tld'].forEach((part, i) => {
-                if (feedback[i] !== 'green') feedback[i] = 'teal';
-            });
-        }
-        return feedback;
+        // Ensure modals are hidden
+        helpModal.style.display = 'none';
+        statsModal.style.display = 'none';
     }
 
-    /**
-     * Renders the current state of the guess grid to the DOM.
-     */
-    function renderGrid() {
-        const row = dom.grid.children[state.currentAttempt];
-        if (!row) return;
-        const guess = state.guesses[state.currentAttempt];
-        PART_KEYS.forEach((part, i) => {
-            const partEl = row.children[i];
-            const front = partEl.querySelector('.front');
-            front.textContent = guess[part] || '';
-            partEl.classList.toggle('filled', !!guess[part]);
-        });
-    }
-
-    /**
-     * Reveals the result of the current guess with a flip animation.
-     */
-    function revealGuessResult() {
-        state.isInputDisabled = true;
-        const row = dom.grid.children[state.currentAttempt];
-        const feedback = checkGuess();
-
-        PART_KEYS.forEach((partKey, i) => {
-            const partEl = row.children[i];
-            setTimeout(() => {
-                partEl.classList.add('reveal');
-                const back = partEl.querySelector('.back');
-                back.textContent = state.guesses[state.currentAttempt][partKey];
-                back.classList.add(feedback[i]);
-            }, i * REVEAL_DELAY);
-        });
-
-        const isWin = feedback.every(f => f === 'green');
-        const isLastGuess = state.currentAttempt === GUESS_LIMIT - 1;
-
-        // After the final tile has flipped
-        setTimeout(() => {
-            updateDockOptions(feedback);
-            if (isWin || isLastGuess) {
-                showEndScreen(isWin);
-            } else {
-                state.currentAttempt++;
-                state.isInputDisabled = false;
-            }
-        }, PART_KEYS.length * REVEAL_DELAY);
-    }
-    
-    /**
-     * Updates the component dock, disabling incorrect options.
-     * @param {string[]} feedback - The feedback array for the latest guess.
-     */
-    function updateDockOptions(feedback) {
-        const guess = state.guesses[state.currentAttempt];
-        PART_KEYS.forEach((partKey, i) => {
-            if (feedback[i] === 'gray') {
-                const btn = dom.dock.querySelector(`[data-value="${guess[partKey]}"]`);
-                if(btn) btn.disabled = true;
-            }
-        });
-    }
-
-    /**
-     * Handles the submission of a guess.
-     */
-    function submitGuess() {
-        if (state.isInputDisabled) return;
-
-        const currentGuess = state.guesses[state.currentAttempt];
-        const isComplete = PART_KEYS.every(part => !!currentGuess[part]);
-
-        if (isComplete) {
-            revealGuessResult();
-        } else {
-            const row = dom.grid.children[state.currentAttempt];
-            row.classList.add('invalid');
-            row.addEventListener('animationend', () => row.classList.remove('invalid'), { once: true });
-        }
-    }
-
-    /**
-     * Handles a click on a component option button.
-     * @param {string} part - The URL part type (e.g., 'sub').
-     * @param {string} value - The value of the component.
-     */
-    function selectComponent(part, value) {
-        if (state.isInputDisabled) return;
-        const currentGuess = state.guesses[state.currentAttempt];
-        if (currentGuess[part] === null) {
-            currentGuess[part] = value;
-            renderGrid();
-        }
-    }
-
-    /**
-     * Handles a backspace/delete action.
-     */
-    function deleteComponent() {
-        if (state.isInputDisabled) return;
-        const currentGuess = state.guesses[state.currentAttempt];
-        for (let i = PART_KEYS.length - 1; i >= 0; i--) {
-            const part = PART_KEYS[i];
-            if (currentGuess[part] !== null) {
-                currentGuess[part] = null;
-                renderGrid();
-                return;
-            }
-        }
-    }
-
-    /**
-     * Displays the end-of-game summary modal.
-     * @param {boolean} didWin - Whether the player won the game.
-     */
-    function showEndScreen(didWin) {
-        state.isInputDisabled = true;
-        dom.summaryTitle.textContent = didWin ? 'Trace Complete!' : 'Connection Timed Out';
-        const url = state.targetUrl;
-        dom.finalUrlDisplay.textContent = `${url.sub}.${url.domain}.${url.tld}/${url.path}`;
-        setTimeout(() => dom.summaryModal.classList.remove('hidden'), 500);
-    }
-    
-    /**
-     * Generates a shareable text summary of the game.
-     */
-    function exportTrace() {
-        let text = `Linkle ${state.currentAttempt + 1}/${GUESS_LIMIT}\n\n`;
-        for(let i=0; i<=state.currentAttempt; i++){
-            const feedback = checkGuess(state.guesses[i]); // Needs to re-evaluate old guesses
-            text += feedback.map(f => {
-                if(f === 'green') return '🟩';
-                if(f === 'teal') return '🟦'; // Using blue for share text is more universal
-                return '⬛️';
-            }).join('') + '\n';
-        }
-        navigator.clipboard.writeText(text).then(() => alert('Trace exported to clipboard!'));
-    }
-
-    /**
-     * Creates the initial HTML for the game board and component dock.
-     */
-    function createUI() {
-        // Create Guess Grid
-        dom.grid.innerHTML = '';
-        for (let i = 0; i < GUESS_LIMIT; i++) {
+    function createGameBoard() {
+        gameBoard.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
             const row = document.createElement('div');
-            row.className = 'guess-row';
-            PART_KEYS.forEach(part => {
-                const partEl = document.createElement('div');
-                partEl.className = 'url-part';
-                partEl.dataset.part = part;
-                partEl.innerHTML = `<div class="front"></div><div class="back"></div>`;
-                row.appendChild(partEl);
-            });
-            dom.grid.appendChild(row);
+            row.className = 'attempt-row';
+            row.id = `attempt-${i}`;
+            for (let j = 0; j < 4; j++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                row.appendChild(tile);
+            }
+            gameBoard.appendChild(row);
         }
+    }
 
-        // Create Component Dock
-        dom.dock.innerHTML = '';
-        Object.keys(DATA_POOLS).forEach(part => {
-            const section = document.createElement('div');
-            section.className = 'dock-section';
-            DATA_POOLS[part].forEach(value => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'component-option';
-                button.dataset.part = part;
-                button.dataset.value = value;
-                button.textContent = value;
-                section.appendChild(button);
-            });
-            dom.dock.appendChild(section);
+    function createEventPalette() {
+        eventPalette.innerHTML = '';
+        EVENTS_POOL.forEach(event => {
+            const key = document.createElement('button');
+            key.className = 'event-key';
+            key.textContent = event.name;
+            key.dataset.id = event.id;
+            key.addEventListener('click', () => handleEventSelection(event));
+            eventPalette.appendChild(key);
         });
+    }
 
-        const controlsSection = document.createElement('div');
-        controlsSection.className = 'dock-section';
-        controlsSection.innerHTML = `
-            <button type="button" class="control-option" id="enter-btn">Enter</button>
-            <button type="button" class="control-option" id="backspace-btn">Delete</button>
-        `;
-        dom.dock.appendChild(controlsSection);
+    // --- EVENT HANDLERS ---
+    function handleEventSelection(event) {
+        if (gameState.isGameOver || gameState.guess.length >= 4) return;
+        
+        // Prevent duplicate events in a guess
+        if (gameState.guess.some(e => e.id === event.id)) return;
+
+        gameState.guess.push(event);
+        updateCurrentAttemptUI();
+    }
+
+    function handleDelete() {
+        if (gameState.isGameOver || gameState.guess.length === 0) return;
+        gameState.guess.pop();
+        updateCurrentAttemptUI();
+    }
+
+    function handleSubmit() {
+        if (gameState.isGameOver || gameState.guess.length !== 4) {
+            shakeCurrentRow();
+            return;
+        }
+        processGuess();
     }
     
-    /**
-     * Sets up all necessary event listeners for the application.
-     */
-    function initEventListeners() {
-        dom.dock.addEventListener('click', (e) => {
-            if (e.target.matches('.component-option')) {
-                const { part, value } = e.target.dataset;
-                selectComponent(part, value);
-            } else if (e.target.matches('#enter-btn')) {
-                submitGuess();
-            } else if (e.target.matches('#backspace-btn')) {
-                deleteComponent();
+    // --- GAME LOGIC ---
+    function processGuess() {
+        const guess = [...gameState.guess];
+        const secret = [...gameState.secretTimeline];
+        const feedback = new Array(4).fill(null);
+
+        let isCorrect = true;
+        let guessColors = [];
+
+        // 1. Paradox Check (Blue)
+        let isParadox = false;
+        for (let i = 0; i < 3; i++) {
+            if (guess[i].year > guess[i+1].year) {
+                feedback[i+1] = 'blue';
+                isParadox = true;
+            }
+        }
+        
+        if (isParadox) {
+            // Fill remaining with gray, as paradox check overrides others
+            for (let i = 0; i < 4; i++) {
+                if (!feedback[i]) feedback[i] = 'gray';
+            }
+        } else {
+            // 2. Green Check
+            for (let i = 0; i < 4; i++) {
+                if (guess[i].id === secret[i].id) {
+                    feedback[i] = 'green';
+                    secret[i] = null; // Mark as used
+                    guess[i] = null; // Mark as used
+                }
+            }
+
+            // 3. Yellow/Gray Check
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] !== null) { // If not already green
+                    const secretIndex = secret.findIndex(event => event && event.id === guess[i].id);
+                    if (secretIndex > -1) {
+                        feedback[i] = 'yellow';
+                        secret[secretIndex] = null; // Mark as used
+                    } else {
+                        feedback[i] = 'gray';
+                    }
+                }
+            }
+        }
+
+        gameState.guessHistory.push(feedback);
+        revealFeedback(feedback);
+
+        isCorrect = feedback.every(f => f === 'green');
+
+        if (isCorrect) {
+            endGame(true);
+        } else if (gameState.currentAttempt === 5) {
+            endGame(false);
+        } else {
+            // Move to next attempt
+            gameState.currentAttempt++;
+            gameState.guess = [];
+            updatePaletteUsage();
+        }
+    }
+
+    function endGame(isWin) {
+        gameState.isGameOver = true;
+        updateStats(isWin);
+        saveStats();
+
+        setTimeout(() => {
+            showStatsModal(isWin);
+        }, 1000); // Wait for animations
+    }
+
+
+    // --- UI UPDATES & ANIMATIONS ---
+    function updateCurrentAttemptUI() {
+        const row = document.getElementById(`attempt-${gameState.currentAttempt}`);
+        const tiles = row.children;
+        for (let i = 0; i < 4; i++) {
+            const tile = tiles[i];
+            if (gameState.guess[i]) {
+                tile.textContent = gameState.guess[i].name;
+                tile.classList.add('filled');
+            } else {
+                tile.textContent = '';
+                tile.classList.remove('filled');
+            }
+        }
+        updatePaletteUsage();
+    }
+    
+    function updatePaletteUsage() {
+        const keys = document.querySelectorAll('.event-key');
+        keys.forEach(key => {
+            const eventId = parseInt(key.dataset.id);
+            if (gameState.guess.some(e => e.id === eventId)) {
+                key.classList.add('used');
+            } else {
+                key.classList.remove('used');
             }
         });
+    }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') submitGuess();
-            if (e.key === 'Backspace') deleteComponent();
+    function shakeCurrentRow() {
+        const row = document.getElementById(`attempt-${gameState.currentAttempt}`);
+        row.classList.add('shake');
+        row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
+    }
+
+    function revealFeedback(feedback) {
+        const row = document.getElementById(`attempt-${gameState.currentAttempt}`);
+        const tiles = row.children;
+        feedback.forEach((color, i) => {
+            setTimeout(() => {
+                const tile = tiles[i];
+                tile.classList.add('flip');
+                // The color is applied mid-flip for a better effect
+                setTimeout(() => tile.classList.add(color), 300); 
+            }, i * 400);
         });
+    }
 
-        document.getElementById('info-btn').addEventListener('click', () => dom.infoModal.classList.remove('hidden'));
-        document.getElementById('restart-btn').addEventListener('click', startNewGame);
-        document.getElementById('export-btn').addEventListener('click', exportTrace);
+    // --- MODALS & STATS ---
+    function setupModalListeners() {
+        helpBtn.addEventListener('click', () => helpModal.style.display = 'block');
+        statsBtn.addEventListener('click', () => showStatsModal());
+        newGameBtn.addEventListener('click', initializeGame);
 
-        document.querySelectorAll('.modal-close-btn').forEach(btn => {
+        modalCloses.forEach(btn => {
             btn.addEventListener('click', () => {
-                document.getElementById(btn.dataset.modalId).classList.add('hidden');
+                helpModal.style.display = 'none';
+                statsModal.style.display = 'none';
             });
         });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === helpModal) helpModal.style.display = 'none';
+            if (event.target === statsModal) statsModal.style.display = 'none';
+        });
+    }
+    
+    function showStatsModal(isWin = null) {
+        const messageDiv = document.getElementById('end-game-message');
+        messageDiv.innerHTML = '';
+        if (gameState.isGameOver) {
+            if (isWin) {
+                messageDiv.innerHTML = '<p>Congratulations! You solved the timeline!</p>';
+            } else {
+                messageDiv.innerHTML = `<p>So close! The correct timeline was:</p>
+                    <p><em>${gameState.secretTimeline.map(e => e.name).join(' → ')}</em></p>`;
+            }
+        }
+        updateStatsUI();
+        statsModal.style.display = 'block';
     }
 
-    /**
-     * Initializes a new game session.
-     */
-    function startNewGame() {
-        state.targetUrl = TARGET_URLS[Math.floor(Math.random() * TARGET_URLS.length)];
-        state.guesses = Array.from({ length: GUESS_LIMIT }, () => ({ sub: null, domain: null, tld: null, path: null }));
-        state.currentAttempt = 0;
-        state.isInputDisabled = false;
+    function loadStats() {
+        const storedStats = JSON.parse(localStorage.getItem('chronomixStats'));
+        if (storedStats) {
+            stats = storedStats;
+        }
+    }
+
+    function saveStats() {
+        localStorage.setItem('chronomixStats', JSON.stringify(stats));
+    }
+
+    function updateStats(isWin) {
+        stats.gamesPlayed++;
+        if (isWin) {
+            stats.wins++;
+            stats.currentStreak++;
+            if (stats.currentStreak > stats.maxStreak) {
+                stats.maxStreak = stats.currentStreak;
+            }
+        } else {
+            stats.currentStreak = 0;
+        }
+    }
+    
+    function updateStatsUI() {
+        document.getElementById('games-played').textContent = stats.gamesPlayed;
+        const winPercent = stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
+        document.getElementById('win-percent').textContent = winPercent;
+        document.getElementById('current-streak').textContent = stats.currentStreak;
+        document.getElementById('max-streak').textContent = stats.maxStreak;
+    }
+    
+    // --- SHARE ---
+    shareBtn.addEventListener('click', () => {
+        const title = `Chronomix ${gameState.isGameOver && !gameState.guessHistory.every(row => row.every(f => f === 'green')) ? gameState.guessHistory.length : 'X'}/6`;
+        const emojiGrid = gameState.guessHistory.map(row => 
+            row.map(color => {
+                switch(color) {
+                    case 'green': return '🟩';
+                    case 'yellow': return '🟨';
+                    case 'blue': return '🟦';
+                    default: return '⬛️';
+                }
+            }).join('')
+        ).join('\n');
         
-        dom.summaryModal.classList.add('hidden');
-        createUI(); // Re-create to reset disabled states on buttons
-        renderGrid();
-    }
+        const shareText = `${title}\n\n${emojiGrid}`;
+        navigator.clipboard.writeText(shareText).then(() => {
+            alert('Results copied to clipboard!');
+        });
+    });
 
-    // --- Application Entry Point ---
-    createUI();
-    initEventListeners();
-    startNewGame();
+    // --- KEYBOARD SUPPORT ---
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            handleSubmit();
+        } else if (e.key === 'Backspace') {
+            handleDelete();
+        }
+    });
 
-})();
+    // --- START THE GAME ---
+    initializeGame();
+    setupModalListeners();
+});
