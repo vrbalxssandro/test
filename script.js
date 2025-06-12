@@ -35,12 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
         setupBoard();
         setupPalette();
         
+        // Re-enable controls for a new game
+        submitButton.disabled = false;
+        deleteButton.disabled = false;
+        colorPalette.addEventListener('click', handleColorClick);
+
         // Hide modals
         rulesModal.classList.add('hidden');
         endGameModal.classList.add('hidden');
 
         updateActiveRow();
-        console.log("Secret Code (for debugging):", secretCode); // For development/testing
+        console.log("Secret Code (for debugging):", secretCode);
     }
 
     function generateSecretCode() {
@@ -54,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('div');
             row.className = 'attempt-row';
             row.dataset.attempt = i;
-
             const guessTiles = document.createElement('div');
             guessTiles.className = 'guess-tiles';
             for (let j = 0; j < CODE_LENGTH; j++) {
@@ -62,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 tile.className = 'tile';
                 guessTiles.appendChild(tile);
             }
-
             const feedbackPegs = document.createElement('div');
             feedbackPegs.className = 'feedback-pegs';
             for (let j = 0; j < CODE_LENGTH; j++) {
@@ -70,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 peg.className = 'peg';
                 feedbackPegs.appendChild(peg);
             }
-            
             row.appendChild(guessTiles);
             row.appendChild(feedbackPegs);
             gameBoard.appendChild(row);
@@ -90,11 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Handlers ---
-    colorPalette.addEventListener('click', handleColorClick);
+    // The palette listener is now added/removed in init/endGame
     deleteButton.addEventListener('click', handleDelete);
     submitButton.addEventListener('click', handleSubmit);
     document.addEventListener('keydown', handleKeyboardInput);
-
     rulesButton.addEventListener('click', () => rulesModal.classList.remove('hidden'));
     closeModalButtons.forEach(button => button.addEventListener('click', () => {
         rulesModal.classList.add('hidden');
@@ -104,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     shareResultsButton.addEventListener('click', handleShare);
 
     function handleColorClick(e) {
-        if (isGameOver || !e.target.classList.contains('palette-color')) return;
+        if (!e.target.classList.contains('palette-color')) return;
         
         const color = e.target.dataset.color;
         const currentGuess = guesses[currentAttempt];
@@ -118,9 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleDelete() {
         if (isGameOver) return;
-        
         const currentGuess = guesses[currentAttempt];
-        // Find the last filled slot to delete
         for (let i = CODE_LENGTH - 1; i >= 0; i--) {
             if (currentGuess[i] !== null) {
                 currentGuess[i] = null;
@@ -130,8 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- REFACTORED AND HARDENED handleSubmit FUNCTION ---
     function handleSubmit() {
-        if (isGameOver) return;
+        // More robust guarding against invalid state
+        if (isGameOver || currentAttempt >= MAX_ATTEMPTS) {
+            return;
+        }
         
         const currentGuess = guesses[currentAttempt];
         if (currentGuess.includes(null)) {
@@ -142,10 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const feedback = evaluateGuess(currentGuess);
         displayFeedback(feedback);
         
-        if (feedback.whitePegs === CODE_LENGTH) {
-            endGame(true);
-        } else if (currentAttempt === MAX_ATTEMPTS - 1) {
-            endGame(false);
+        const isWin = feedback.whitePegs === CODE_LENGTH;
+        const isLastAttempt = currentAttempt === MAX_ATTEMPTS - 1;
+
+        if (isWin || isLastAttempt) {
+            endGame(isWin);
         } else {
             currentAttempt++;
             updateActiveRow();
@@ -154,49 +158,46 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleKeyboardInput(e) {
         if (isGameOver) return;
-
-        if (e.key === 'Enter') {
-            handleSubmit();
-        } else if (e.key === 'Backspace') {
-            handleDelete();
-        }
+        if (e.key === 'Enter') handleSubmit();
+        else if (e.key === 'Backspace') handleDelete();
     }
 
     // --- Game Logic ---
     function evaluateGuess(guess) {
         let whitePegs = 0;
         let grayPegs = 0;
-        
         const secretCopy = [...secretCode];
         const guessCopy = [...guess];
         
-        // First pass for white pegs (correct color, correct position)
         for (let i = 0; i < CODE_LENGTH; i++) {
             if (guessCopy[i] === secretCopy[i]) {
                 whitePegs++;
-                // Nullify to prevent them from being counted again
                 secretCopy[i] = null;
                 guessCopy[i] = null;
             }
         }
         
-        // Second pass for gray pegs (correct color, wrong position)
         for (let i = 0; i < CODE_LENGTH; i++) {
             if (guessCopy[i] !== null) {
                 const indexInSecret = secretCopy.indexOf(guessCopy[i]);
                 if (indexInSecret !== -1) {
                     grayPegs++;
-                    // Nullify to prevent double counting
                     secretCopy[indexInSecret] = null;
                 }
             }
         }
-        
         return { whitePegs, grayPegs };
     }
 
+    // --- HARDENED endGame FUNCTION ---
     function endGame(didWin) {
         isGameOver = true;
+
+        // Explicitly disable controls to prevent input during state transitions
+        submitButton.disabled = true;
+        deleteButton.disabled = true;
+        colorPalette.removeEventListener('click', handleColorClick);
+
         const message = didWin ? 'You Won!' : 'You Lost!';
         document.getElementById('end-game-message').textContent = message;
 
@@ -213,14 +214,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function handleShare() {
-        const attemptsUsed = guesses.findIndex(g => g[0] === null);
-        const finalAttemptCount = attemptsUsed === -1 ? MAX_ATTEMPTS : attemptsUsed;
-        const didWin = evaluateGuess(guesses[finalAttemptCount - 1]).whitePegs === CODE_LENGTH;
+        const lastAttemptIndex = guesses.findIndex(g => g[0] === null);
+        const attemptsMade = lastAttemptIndex === -1 ? MAX_ATTEMPTS : lastAttemptIndex;
+        if (attemptsMade === 0) {
+             navigator.clipboard.writeText("Color Code - I haven't made a guess yet!").then(() => alert("Results copied!"));
+             return;
+        }
+        const lastGuess = guesses[attemptsMade - 1];
+        const didWin = evaluateGuess(lastGuess).whitePegs === CODE_LENGTH;
 
-        let shareText = `Color Code ${didWin ? finalAttemptCount : 'X'}/${MAX_ATTEMPTS}\n\n`;
+        let shareText = `Color Code ${didWin ? attemptsMade : 'X'}/${MAX_ATTEMPTS}\n\n`;
         
-        for(let i = 0; i < finalAttemptCount; i++) {
-            if(guesses[i][0] === null) break;
+        for(let i = 0; i < attemptsMade; i++) {
             const feedback = evaluateGuess(guesses[i]);
             shareText += '⚫️'.repeat(feedback.whitePegs);
             shareText += '⚪️'.repeat(feedback.grayPegs);
@@ -229,9 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigator.clipboard.writeText(shareText).then(() => {
             alert("Results copied to clipboard!");
-        }).catch(err => {
-            console.error('Could not copy text: ', err);
-        });
+        }).catch(err => console.error('Could not copy text: ', err));
     }
 
     // --- UI Update Functions ---
@@ -241,13 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const tiles = row.querySelectorAll('.tile');
             tiles.forEach((tile, tileIndex) => {
                 const color = guesses[rowIndex][tileIndex];
-                if (color) {
-                    tile.style.backgroundColor = color;
-                    tile.classList.add('filled');
-                } else {
-                    tile.style.backgroundColor = 'transparent';
-                    tile.classList.remove('filled');
-                }
+                tile.style.backgroundColor = color ? color : 'transparent';
+                tile.classList.toggle('filled', !!color);
             });
         });
     }
@@ -256,34 +254,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = gameBoard.querySelector(`.attempt-row[data-attempt='${currentAttempt}']`);
         const pegs = row.querySelectorAll('.peg');
         let pegIndex = 0;
-        
-        for (let i = 0; i < whitePegs; i++) {
-            pegs[pegIndex++].classList.add('white');
-        }
-        for (let i = 0; i < grayPegs; i++) {
-            pegs[pegIndex++].classList.add('gray');
-        }
+        for (let i = 0; i < whitePegs; i++) pegs[pegIndex++].classList.add('white');
+        for (let i = 0; i < grayPegs; i++) pegs[pegIndex++].classList.add('gray');
     }
 
     function shakeCurrentRow() {
         const row = gameBoard.querySelector(`.attempt-row[data-attempt='${currentAttempt}']`);
-        // BUG FIX: Add a check to ensure the row exists before manipulating it.
         if (row) {
             row.classList.add('shake');
-            row.addEventListener('animationend', () => {
-                row.classList.remove('shake');
-            }, { once: true });
+            row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
         }
     }
 
     function updateActiveRow() {
         const rows = gameBoard.querySelectorAll('.attempt-row');
         rows.forEach((row, index) => {
-            if(index === currentAttempt && !isGameOver) {
-                row.style.opacity = '1';
-            } else {
-                row.style.opacity = '0.7';
-            }
+            row.style.opacity = (index === currentAttempt && !isGameOver) ? '1' : '0.7';
         });
     }
 
