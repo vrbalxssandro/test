@@ -213,9 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function handleShare() {
-        let shareText = `Color Code ${isGameOver && guesses[currentAttempt][0] !== null ? currentAttempt + 1 : 'X'}/${MAX_ATTEMPTS}\n\n`;
+        const attemptsUsed = guesses.findIndex(g => g[0] === null);
+        const finalAttemptCount = attemptsUsed === -1 ? MAX_ATTEMPTS : attemptsUsed;
+        const didWin = evaluateGuess(guesses[finalAttemptCount - 1]).whitePegs === CODE_LENGTH;
+
+        let shareText = `Color Code ${didWin ? finalAttemptCount : 'X'}/${MAX_ATTEMPTS}\n\n`;
         
-        for(let i = 0; i <= currentAttempt; i++) {
+        for(let i = 0; i < finalAttemptCount; i++) {
             if(guesses[i][0] === null) break;
             const feedback = evaluateGuess(guesses[i]);
             shareText += '⚫️'.repeat(feedback.whitePegs);
@@ -263,10 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function shakeCurrentRow() {
         const row = gameBoard.querySelector(`.attempt-row[data-attempt='${currentAttempt}']`);
-        row.classList.add('shake');
-        row.addEventListener('animationend', () => {
-            row.classList.remove('shake');
-        }, { once: true });
+        // BUG FIX: Add a check to ensure the row exists before manipulating it.
+        if (row) {
+            row.classList.add('shake');
+            row.addEventListener('animationend', () => {
+                row.classList.remove('shake');
+            }, { once: true });
+        }
     }
 
     function updateActiveRow() {
