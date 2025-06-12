@@ -12,54 +12,68 @@
 </head>
 <body>
 
-    <div class="game-container">
+    <main class="game-container">
         <header>
-            <button id="rules-btn" class="icon-btn" type="button">?</button>
             <h1>Color Code</h1>
+            <button type="button" class="icon-button" id="rules-button">?</button>
         </header>
 
-        <main>
-            <div id="game-board"></div>
-        </main>
-
-        <footer>
-            <div id="color-palette"></div>
-            <div class="controls">
-                <button id="delete-btn" class="control-btn" type="button">Delete</button>
-                <button id="submit-btn" class="control-btn" type="button">Submit</button>
+        <div id="game-board">
+            <!-- Game rows will be dynamically populated by JS, but this is the structure -->
+            <!-- Example of one row: -->
+            <!--
+            <div class="attempt-row" data-attempt="0">
+                <div class="guess-tiles">
+                    <div class="tile"></div>
+                    <div class="tile"></div>
+                    <div class="tile"></div>
+                    <div class="tile"></div>
+                </div>
+                <div class="feedback-pegs">
+                    <div class="peg"></div>
+                    <div class="peg"></div>
+                    <div class="peg"></div>
+                    <div class="peg"></div>
+                </div>
             </div>
-        </footer>
-    </div>
+            -->
+        </div>
+
+        <div id="color-palette">
+            <!-- Palette colors will be dynamically populated by JS -->
+        </div>
+
+        <div class="controls">
+            <button type="button" id="delete-button">Delete</button>
+            <button type="button" id="submit-button">Submit</button>
+        </div>
+    </main>
 
     <!-- Rules Modal -->
-    <div id="rules-modal" class="modal-overlay" hidden>
+    <div id="rules-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <button class="close-btn" type="button">×</button>
+            <button type="button" class="close-modal-button">×</button>
             <h2>How to Play</h2>
-            <p>Your goal is to guess the secret 4-color code in 6 tries.</p>
-            <p>The code uses 4 unique colors from the palette below.</p>
-            <hr>
+            <p>Guess the secret 4-color code. The colors in the code are all unique.</p>
+            <p>You have 6 attempts.</p>
             <h3>Feedback Pegs</h3>
-            <div class="feedback-legend">
-                <span class="peg-example black-peg"></span>
-                <p><strong>Correct Color, Correct Position</strong></p>
-            </div>
-            <div class="feedback-legend">
-                <span class="peg-example white-peg"></span>
-                <p><strong>Correct Color, Wrong Position</strong></p>
-            </div>
+            <ul>
+                <li><span class="peg-example white"></span>A <strong>White Peg</strong> means you have the correct color in the correct position.</li>
+                <li><span class="peg-example gray"></span>A <strong>Gray Peg</strong> means you have a correct color, but it's in the wrong position.</li>
+            </ul>
+            <p>Good luck!</p>
         </div>
     </div>
 
     <!-- End Game Modal -->
-    <div id="end-game-modal" class="modal-overlay" hidden>
+    <div id="end-game-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h2 id="end-game-title"></h2>
+            <h2 id="end-game-message">You Won!</h2>
             <p>The secret code was:</p>
             <div id="secret-code-display"></div>
-            <div class="end-game-buttons">
-                <button id="share-btn" class="control-btn" type="button">Share</button>
-                <button id="play-again-btn" class="control-btn" type="button">Play Again</button>
+            <div class="modal-buttons">
+                <button type="button" id="play-again-button">Play Again</button>
+                <button type="button" id="share-results-button">Share Results</button>
             </div>
         </div>
     </div>
