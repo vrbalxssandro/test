@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Code</title>
+    <title>Linkle</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
@@ -14,7 +14,7 @@
 
     <main class="game-container">
         <header>
-            <h1>Color Code</h1>
+            <h1>Linkle</h1>
             <button type="button" class="icon-button" id="rules-button">?</button>
         </header>
 
@@ -22,41 +22,41 @@
             <!-- Dynamically populated by script.js -->
         </div>
 
-        <div id="color-palette">
-            <!-- Dynamically populated by script.js -->
-        </div>
-
         <div class="controls">
             <button type="button" id="delete-button">Delete</button>
             <button type="button" id="submit-button">Submit</button>
+        </div>
+
+        <div id="terminals-container">
+            <!-- Dynamically populated by script.js -->
         </div>
     </main>
 
     <!-- Rules Modal -->
     <div id="rules-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <button type="button" class="close-modal-button" data-close-target="rules-modal">×</button>
-            <h2>How to Play</h2>
-            <p>Guess the secret 4-color code. The colors in the code are all unique.</p>
-            <p>You have 6 attempts.</p>
-            <h3>Feedback Pegs</h3>
+            <button type="button" class="close-modal-button">×</button>
+            <h2>How to Play Linkle</h2>
+            <p>Deduce the secret URL in 6 tries. Select components from the terminals below to build your guess.</p>
+            <h3>Feedback Codes</h3>
             <ul>
-                <li><span class="peg-example white"></span>A <strong>White Peg</strong> means you have the correct color in the correct position.</li>
-                <li><span class="peg-example gray"></span>A <strong>Gray Peg</strong> means you have a correct color, but it's in the wrong position.</li>
+                <li><span class="tile-example green"></span>A <strong class="green-text">200 OK (Green)</strong> tile means the component is correct and in the right place.</li>
+                <li><span class="tile-example blue"></span>A <strong class="blue-text">200 OK - Wrong Host (Blue)</strong> tile means the Subdomain, Domain, and TLD you guessed form a REAL, live website, but it's not the secret one. This is a huge clue!</li>
+                <li><span class="tile-example gray"></span>A <strong class="gray-text">404 Not Found (Gray)</strong> tile means the component is not in the secret URL.</li>
             </ul>
-            <p>Good luck!</p>
+            <p>Ping the network. Find the link. Good luck!</p>
         </div>
     </div>
 
     <!-- End Game Modal -->
     <div id="end-game-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h2 id="end-game-message">You Won!</h2>
-            <p>The secret code was:</p>
-            <div id="secret-code-display"></div>
+            <h2 id="end-game-message">Connection Found!</h2>
+            <p>The secret URL was:</p>
+            <div id="secret-url-display"></div>
             <div class="modal-buttons">
-                <button type="button" id="play-again-button">Play Again</button>
-                <button type="button" id="share-results-button">Share Results</button>
+                <button type="button" id="play-again-button">New Connection</button>
+                <button type="button" id="share-results-button">Share Trace</button>
             </div>
         </div>
     </div>
