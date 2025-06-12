@@ -14,25 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Game Configuration ---
     const COLORS = {
-        'Red': '#FF4136',
-        'Orange': '#FF851B',
-        'Yellow': '#FFDC00',
-        'Green': '#2ECC40',
-        'Blue': '#0074D9',
-        'Purple': '#B10DC9'
+        'Red': '#FF4136', 'Orange': '#FF851B', 'Yellow': '#FFDC00',
+        'Green': '#2ECC40', 'Blue': '#0074D9', 'Purple': '#B10DC9'
     };
     const NUM_ATTEMPTS = 6;
     const CODE_LENGTH = 4;
 
     // --- Game State ---
-    let secretCode = [];
-    let currentRowIndex = 0;
-    let currentGuess = [];
-    let isGameOver = false;
-    let shareableHistory = [];
-    let gameResultForSharing = '';
+    let secretCode, currentRowIndex, currentGuess, isGameOver, shareableHistory, gameResultForSharing;
 
-    // --- Game Initialization ---
     function initializeGame() {
         // Reset state
         isGameOver = false;
@@ -46,87 +36,79 @@ document.addEventListener('DOMContentLoaded', () => {
         const colorValues = Object.values(COLORS);
         const shuffledColors = colorValues.sort(() => 0.5 - Math.random());
         secretCode = shuffledColors.slice(0, CODE_LENGTH);
-        
-        // console.log("Secret Code:", secretCode); // For debugging
 
-        // Clear and create the game board
+        // Clear and create the game board and palette
+        createBoard();
+        createPalette();
+
+        // Ensure all modals are hidden on start
+        rulesModal.hidden = true;
+        endGameModal.hidden = true;
+    }
+
+    function createBoard() {
         gameBoard.innerHTML = '';
         for (let i = 0; i < NUM_ATTEMPTS; i++) {
             const row = document.createElement('div');
             row.className = 'guess-row';
             row.dataset.rowIndex = i;
-
-            let tilesHTML = '';
-            for (let j = 0; j < CODE_LENGTH; j++) {
-                tilesHTML += `<div class="color-tile" data-col-index="${j}"></div>`;
-            }
-
-            let pegsHTML = '';
-            for (let j = 0; j < CODE_LENGTH; j++) {
-                pegsHTML += '<div class="peg"></div>';
-            }
             
-            // Using a container for the tiles themselves to apply animations
-            const colorTilesContainer = document.createElement('div');
-            colorTilesContainer.className = 'color-tiles';
-            colorTilesContainer.innerHTML = tilesHTML;
-
-            row.appendChild(colorTilesContainer);
-            row.innerHTML += `<div class="feedback-pegs">${pegsHTML}</div>`;
+            row.innerHTML = `
+                <div class="color-tiles">
+                    ${Array(CODE_LENGTH).fill('<div class="color-tile"></div>').join('')}
+                </div>
+                <div class="feedback-pegs">
+                    ${Array(CODE_LENGTH).fill('<div class="peg"></div>').join('')}
+                </div>
+            `;
             gameBoard.appendChild(row);
         }
+    }
 
-        // Create color palette
+    function createPalette() {
         colorPalette.innerHTML = '';
         Object.values(COLORS).forEach(color => {
             const btn = document.createElement('button');
             btn.className = 'color-btn';
+            btn.type = 'button';
             btn.style.backgroundColor = color;
             btn.dataset.color = color;
             colorPalette.appendChild(btn);
         });
-
-        // Hide modals
-        rulesModal.hidden = true;
-        endGameModal.hidden = true;
-    }
-
-    // --- UI Update Functions ---
-    function updateCurrentGuessUI() {
-        const currentRow = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`);
-        const tiles = currentRow.querySelectorAll('.color-tile');
-        tiles.forEach((tile, index) => {
-            if (currentGuess[index]) {
-                tile.style.backgroundColor = currentGuess[index];
-                tile.classList.add('filled');
-            } else {
-                tile.style.backgroundColor = 'transparent';
-                tile.classList.remove('filled');
-            }
-        });
-    }
-
-    function displayFeedback(feedback) {
-        const currentRow = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`);
-        const pegs = currentRow.querySelectorAll('.peg');
-        let historyString = '';
-        for (let i = 0; i < feedback.blackPegs; i++) {
-            pegs[i].classList.add('black-peg');
-            historyString += '⚫️'; // Using a visually distinct character for black
-        }
-        for (let i = 0; i < feedback.whitePegs; i++) {
-            pegs[feedback.blackPegs + i].classList.add('white-peg');
-            historyString += '⚪️';
-        }
-        shareableHistory.push(historyString);
     }
 
     // --- Game Logic ---
+    function checkGuess() {
+        let blackPegs = 0, whitePegs = 0;
+        const tempSecret = [...secretCode];
+        const tempGuess = [...currentGuess];
+
+        // Pass 1: Black pegs (correct color, correct position)
+        for (let i = 0; i < CODE_LENGTH; i++) {
+            if (tempGuess[i] === tempSecret[i]) {
+                blackPegs++;
+                tempSecret[i] = null; // Mark as checked
+                tempGuess[i] = null;  // Mark as checked
+            }
+        }
+
+        // Pass 2: White pegs (correct color, wrong position)
+        for (let i = 0; i < CODE_LENGTH; i++) {
+            if (tempGuess[i] !== null) { // Check non-black-peg guesses
+                const foundIndex = tempSecret.indexOf(tempGuess[i]);
+                if (foundIndex !== -1) {
+                    whitePegs++;
+                    tempSecret[foundIndex] = null; // Mark as checked to prevent double counting
+                }
+            }
+        }
+        return { blackPegs, whitePegs };
+    }
+
+    // --- Event Handlers ---
     function handleColorSelect(e) {
         if (isGameOver || !e.target.matches('.color-btn') || currentGuess.length >= CODE_LENGTH) return;
-        
-        const color = e.target.dataset.color;
-        currentGuess.push(color);
+        currentGuess.push(e.target.dataset.color);
         updateCurrentGuessUI();
     }
 
@@ -137,12 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSubmit() {
-        if (isGameOver) return;
-
-        if (currentGuess.length !== CODE_LENGTH) {
-            const currentRowTiles = gameBoard.querySelector(`[data-row-index='${currentRowIndex}'] .color-tiles`);
-            currentRowTiles.classList.add('shake');
-            setTimeout(() => currentRowTiles.classList.remove('shake'), 500);
+        if (isGameOver || currentGuess.length !== CODE_LENGTH) {
+            if (!isGameOver) {
+                 const currentRowTiles = gameBoard.querySelector(`[data-row-index='${currentRowIndex}'] .color-tiles`);
+                 currentRowTiles.classList.add('shake');
+                 setTimeout(() => currentRowTiles.classList.remove('shake'), 500);
+            }
             return;
         }
 
@@ -159,92 +141,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function checkGuess() {
-        let blackPegs = 0;
-        let whitePegs = 0;
-        const tempSecret = [...secretCode];
-        const tempGuess = [...currentGuess];
-
-        // First pass for black pegs (correct color and position)
-        for (let i = tempGuess.length - 1; i >= 0; i--) {
-            if (tempGuess[i] === tempSecret[i]) {
-                blackPegs++;
-                tempSecret.splice(i, 1);
-                tempGuess.splice(i, 1);
-            }
-        }
-
-        // Second pass for white pegs (correct color, wrong position)
-        for (let i = tempGuess.length - 1; i >= 0; i--) {
-            const foundIndex = tempSecret.indexOf(tempGuess[i]);
-            if (foundIndex !== -1) {
-                whitePegs++;
-                tempSecret.splice(foundIndex, 1);
-            }
-        }
-        return { blackPegs, whitePegs };
+    // --- UI Update Functions ---
+    function updateCurrentGuessUI() {
+        const tiles = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`).querySelectorAll('.color-tile');
+        tiles.forEach((tile, index) => {
+            tile.style.backgroundColor = currentGuess[index] || 'transparent';
+            tile.classList.toggle('filled', !!currentGuess[index]);
+        });
     }
 
+    function displayFeedback({ blackPegs, whitePegs }) {
+        const pegs = gameBoard.querySelector(`[data-row-index='${currentRowIndex}']`).querySelectorAll('.peg');
+        let historyString = '';
+        for (let i = 0; i < blackPegs; i++) { pegs[i].classList.add('black-peg'); historyString += '⚫️'; }
+        for (let i = 0; i < whitePegs; i++) { pegs[blackPegs + i].classList.add('white-peg'); historyString += '⚪️'; }
+        shareableHistory.push(historyString);
+    }
+
+    // --- Game End and Modals ---
     function endGame(isWin) {
         isGameOver = true;
-        const title = endGameModal.querySelector('#end-game-title');
-        const codeDisplay = endGameModal.querySelector('#secret-code-display');
-
-        // Set result text for sharing
-        if (isWin) {
-            title.textContent = "You Won!";
-            gameResultForSharing = `Color Code ${currentRowIndex + 1}/${NUM_ATTEMPTS}`;
-        } else {
-            title.textContent = "You Lost!";
-            gameResultForSharing = `Color Code X/${NUM_ATTEMPTS}`;
-        }
+        gameResultForSharing = isWin ? `Color Code ${currentRowIndex + 1}/${NUM_ATTEMPTS}` : `Color Code X/${NUM_ATTEMPTS}`;
         
+        endGameModal.querySelector('#end-game-title').textContent = isWin ? "You Won!" : "You Lost!";
+        const codeDisplay = endGameModal.querySelector('#secret-code-display');
         codeDisplay.innerHTML = '';
         secretCode.forEach(color => {
-            const tile = document.createElement('div');
-            tile.className = 'color-tile filled';
-            tile.style.backgroundColor = color;
-            codeDisplay.appendChild(tile);
+            codeDisplay.innerHTML += `<div class="color-tile filled" style="background-color: ${color};"></div>`;
         });
 
-        setTimeout(() => {
-            endGameModal.hidden = false;
-        }, 500); // Small delay to allow final feedback animation to be seen
+        setTimeout(() => endGameModal.hidden = false, 500);
     }
     
-    // --- Event Listeners ---
-    rulesBtn.addEventListener('click', () => rulesModal.hidden = false);
-    modalClosers.forEach(btn => btn.addEventListener('click', () => {
+    function closeModals() {
         rulesModal.hidden = true;
         endGameModal.hidden = true;
-    }));
+    }
     
-    playAgainBtn.addEventListener('click', initializeGame);
-    
-    colorPalette.addEventListener('click', handleColorSelect);
-    deleteBtn.addEventListener('click', handleDelete);
-    submitBtn.addEventListener('click', handleSubmit);
-
-    document.addEventListener('keydown', (e) => {
-        if (isGameOver) return;
-        if (e.key === 'Enter') {
-            handleSubmit();
-        } else if (e.key === 'Backspace') {
-            handleDelete();
-        }
-    });
-
-    shareBtn.addEventListener('click', () => {
-        const resultText = `${gameResultForSharing}\n\n${shareableHistory.join('\n')}`;
+    function attachEventListeners() {
+        colorPalette.addEventListener('click', handleColorSelect);
+        deleteBtn.addEventListener('click', handleDelete);
+        submitBtn.addEventListener('click', handleSubmit);
         
-        navigator.clipboard.writeText(resultText).then(() => {
-            alert("Results copied to clipboard!");
-        }).catch(err => {
-            console.error('Failed to copy results: ', err);
-            alert("Could not copy results. Your browser may not support this feature.");
+        rulesBtn.addEventListener('click', () => rulesModal.hidden = false);
+        modalClosers.forEach(btn => btn.addEventListener('click', closeModals));
+        playAgainBtn.addEventListener('click', initializeGame);
+
+        shareBtn.addEventListener('click', () => {
+            const resultText = `${gameResultForSharing}\n\n${shareableHistory.join('\n')}`;
+            navigator.clipboard.writeText(resultText)
+                .then(() => alert("Results copied to clipboard!"))
+                .catch(err => console.error('Failed to copy results: ', err));
         });
-    });
+
+        document.addEventListener('keydown', (e) => {
+            if (isGameOver) return;
+            if (e.key === 'Enter') handleSubmit();
+            else if (e.key === 'Backspace') handleDelete();
+        });
+    }
 
     // --- Start the game ---
+    attachEventListeners();
     initializeGame();
 });
