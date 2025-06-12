@@ -19,28 +19,11 @@
         </header>
 
         <div id="game-board">
-            <!-- Game rows will be dynamically populated by JS, but this is the structure -->
-            <!-- Example of one row: -->
-            <!--
-            <div class="attempt-row" data-attempt="0">
-                <div class="guess-tiles">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                </div>
-                <div class="feedback-pegs">
-                    <div class="peg"></div>
-                    <div class="peg"></div>
-                    <div class="peg"></div>
-                    <div class="peg"></div>
-                </div>
-            </div>
-            -->
+            <!-- Dynamically populated by script.js -->
         </div>
 
         <div id="color-palette">
-            <!-- Palette colors will be dynamically populated by JS -->
+            <!-- Dynamically populated by script.js -->
         </div>
 
         <div class="controls">
@@ -52,7 +35,7 @@
     <!-- Rules Modal -->
     <div id="rules-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <button type="button" class="close-modal-button">×</button>
+            <button type="button" class="close-modal-button" data-close-target="rules-modal">×</button>
             <h2>How to Play</h2>
             <p>Guess the secret 4-color code. The colors in the code are all unique.</p>
             <p>You have 6 attempts.</p>
