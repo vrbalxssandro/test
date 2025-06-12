@@ -1,124 +1,218 @@
-/* General Body & Font Styling */
+:root {
+    --bg-color: #121213;
+    --border-color: #3a3a3c;
+    --text-color: #ffffff;
+    --tile-bg: #121213;
+    --key-bg: #818384;
+    --modal-bg: #2c2c2e;
+}
+
 body {
-    background-color: #f0f2f5;
+    background-color: var(--bg-color);
     font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    min-height: 100vh;
+    justify-content: space-between;
+    height: 100vh;
     margin: 0;
-    color: #333;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
-/* Main App Container */
-.container {
-    background-color: white;
-    padding: 30px 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 90%;
-    max-width: 350px;
-}
-
-h1 {
-    color: #1a237e;
-    margin-top: 0;
-    margin-bottom: 20px;
-}
-
-/* Coin Styling */
-.coin {
-    position: relative;
-    width: 150px;
-    height: 150px;
-    margin: 20px auto;
-    transform-style: preserve-3d;
-    transition: transform 1s ease-in-out;
-}
-
-/* Animation class added via JavaScript */
-.coin.flipping {
-    transform: rotateY(1800deg); /* Multiple rotations for effect */
-}
-
-.coin div {
-    position: absolute;
+header {
     width: 100%;
-    height: 100%;
-    backface-visibility: hidden; /* Hides the back side of the element */
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    padding-bottom: 10px;
+}
+
+header h1 {
+    margin: 0;
+    font-weight: 700;
+}
+
+#rules-button {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: 2px solid var(--key-bg);
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+main {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 5rem;
-    font-weight: 600;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    flex-grow: 1;
 }
 
-.heads {
-    background-color: #ffd700; /* Gold */
-    color: #fff;
-    transform: rotateY(0deg);
+#game-board {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 10px;
 }
 
-.tails {
-    background-color: #c0c0c0; /* Silver */
-    color: #fff;
-    transform: rotateY(180deg);
+.guess-row-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* Status Text */
-#status-text {
-    font-size: 1.1rem;
-    color: #555;
-    min-height: 1.5em; /* Prevents layout shift */
-    margin: 20px 0;
+.guess-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
 }
 
-/* Flip Button */
-#flip-button {
-    background-color: #3f51b5;
-    color: white;
+.guess-tile {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    background-color: var(--tile-bg);
+    transition: transform 0.2s;
+}
+
+.guess-tile.filled {
+    border-color: #888;
+}
+
+.guess-row-container.shake .guess-row {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+}
+
+.feedback-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+}
+
+.peg {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    border: 1px solid #555;
+}
+.peg.black { background-color: #ffffff; }
+.peg.white { background-color: #818384; }
+
+#color-palette {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.color-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
     border: none;
-    padding: 12px 25px;
+    cursor: pointer;
+}
+
+#action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 10px 20px;
     font-size: 1rem;
     font-weight: 600;
+    background-color: var(--key-bg);
+    color: var(--text-color);
+    border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-bottom: 20px;
 }
 
-#flip-button:hover {
-    background-color: #303f9f;
-}
-
-#flip-button:active {
-    transform: scale(0.98);
-}
-
-#flip-button:disabled {
-    background-color: #9fa8da;
-    cursor: not-allowed;
-}
-
-/* Statistics Counter */
-.stats {
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e0e0e0;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-.stats p {
-    margin: 0;
+.modal-content {
+    background-color: var(--modal-bg);
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 90%;
+    width: 350px;
+    position: relative;
+}
+
+.modal-content h2 { margin-top: 0; }
+.modal-content button {
+    background-color: #4a4e69;
+    color: var(--text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
     font-size: 1rem;
-    color: #555;
+    margin-top: 15px;
 }
+.modal-content button#share-button { background-color: #5a7d3a; }
+#secret-code-display .guess-row {
+    justify-content: center;
+    margin: 10px 0;
+}
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 2rem;
+    background: none !important;
+    border: none;
+    color: var(--key-bg);
+    cursor: pointer;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.feedback-legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 10px 0;
+    text-align: left;
+}
+.feedback-legend .peg { width: 20px; height: 20px; }
 
-.stats span {
-    font-weight: 600;
-    color: #1a237e;
+@media (max-width: 400px) {
+    .guess-tile { width: 50px; height: 50px; }
+    .color-button { width: 40px; height: 40px; }
 }
