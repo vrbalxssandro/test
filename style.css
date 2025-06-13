@@ -33,15 +33,14 @@ h1 {
 .grid-cell.wall { background-color: #37474f; }
 .grid-cell.goal { background-color: #4caf50; }
 .grid-cell.trap { background-color: #f44336; }
+
 .agent {
-    width: 18px;  /* CHANGED: From 70% to a fixed size */
-    height: 18px; /* CHANGED: From 70% to a fixed size */
+    width: 18px;
+    height: 18px;
     background-color: #2196f3;
     border-radius: 50%;
     position: absolute;
-    /* The magic for centering: we set the element's top/left to the cell's center, 
-       then the transform pulls it back by half its own size. */
-    top: 0; 
+    top: 0;
     left: 0;
     transform: translate(-50%, -50%);
     z-index: 10;
@@ -112,4 +111,9 @@ input[type="range"] {
 .info-value {
     float: right;
     font-weight: normal;
+}
+.control-group:has(#generate-maze-btn) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
