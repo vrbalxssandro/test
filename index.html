@@ -3,80 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronomix</title>
+    <title>Guess the Year!</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
 </head>
 <body>
 
     <div class="game-container">
-        <header>
-            <div class="menu">
-                <button id="help-btn" class="icon-btn">?</button>
-            </div>
-            <h1>Chronomix</h1>
-            <div class="menu">
-                <button id="stats-btn" class="icon-btn">📊</button>
-            </div>
-        </header>
-
-        <main>
-            <div id="game-board"></div>
-        </main>
-
-        <footer>
-            <div id="event-palette"></div>
-            <div class="controls">
-                <button id="delete-btn" class="control-btn">Delete</button>
-                <button id="submit-btn" class="control-btn">Submit</button>
-            </div>
-        </footer>
-    </div>
-
-    <!-- How to Play Modal -->
-    <div id="help-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="modal-close">×</span>
-            <h2>How to Play</h2>
-            <p>Deduce the secret timeline of 4 historical events in the correct chronological order.</p>
-            <ul>
-                <li>You have 6 attempts to guess the timeline.</li>
-                <li>Select 4 events from the palette below to fill a row.</li>
-                <li>Submit your guess to get feedback on your selection.</li>
-            </ul>
-            <hr>
-            <h4>Feedback Colors</h4>
-            <div class="feedback-example">
-                <div class="tile green">Correct Event, Correct Position</div>
-            </div>
-            <div class="feedback-example">
-                <div class="tile yellow">Correct Event, Wrong Position</div>
-            </div>
-            <div class="feedback-example">
-                 <div class="tile gray">Event is Not in the Timeline</div>
-            </div>
+        <div class="header">
+            <h1>Guess the Year</h1>
+            <p class="score-display">Score: <span id="score">0</span></p>
         </div>
-    </div>
 
-    <!-- Statistics Modal -->
-    <div id="stats-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="modal-close">×</span>
-            <h2>Statistics</h2>
-            <div id="stats-content">
-                <div class="stat"><span id="games-played">0</span><br>Played</div>
-                <div class="stat"><span id="win-percent">0</span>%<br>Win</div>
-                <div class="stat"><span id="current-streak">0</span><br>Streak</div>
-                <div class="stat"><span id="max-streak">0</span><br>Max</div>
-            </div>
-            <div id="end-game-message"></div>
-            <button id="share-btn">Share Results</button>
-            <button id="new-game-btn">New Game</button>
+        <div class="event-card" id="event-card">
+            <img id="event-image" src="" alt="Event Image" class="event-image">
+            <p id="event-text" class="event-text">Loading event...</p>
         </div>
+
+        <div class="input-area">
+            <input type="number" id="guess-input" placeholder="Enter a year (e.g., 1995)">
+            <button id="guess-button">Guess</button>
+        </div>
+
+        <p id="feedback" class="feedback-text"></p>
+
+        <button id="next-button" class="hidden">Next Question →</button>
     </div>
 
+    <script src="script.js"></script>
 </body>
 </html>
