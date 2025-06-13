@@ -339,12 +339,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- VISUALIZATION ---
+    // Find this existing function and replace it with the code below
     function updateAgentPosition() {
         const cell = getCellElement(agent.x, agent.y);
-        const rect = cell.getBoundingClientRect();
-        const containerRect = gridContainer.getBoundingClientRect();
-        agent.el.style.left = `${rect.left - containerRect.left}px`;
-        agent.el.style.top = `${rect.top - containerRect.top}px`;
+        
+        // NEW LOGIC: Calculate the center of the cell
+        const cellCenterX = cell.offsetLeft + cell.offsetWidth / 2;
+        const cellCenterY = cell.offsetTop + cell.offsetHeight / 2;
+    
+        // Position the agent's top/left at the cell's center.
+        // The CSS 'transform' will handle the rest.
+        agent.el.style.left = `${cellCenterX}px`;
+        agent.el.style.top = `${cellCenterY}px`;
     }
 
     function visualizeQTable() {
