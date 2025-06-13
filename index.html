@@ -4,51 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RL Gridworld Designer</title>
-    <!-- Link to your external stylesheet -->
+    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <h1>RL Gridworld Designer</h1>
-    <p>Design a maze and watch an AI agent learn to solve it!</p>
+    <p>Design a world, and watch an AI learn to solve it from scratch using Q-Learning.</p>
 
     <div class="container">
         <div class="controls">
-            <h3>Controls</h3>
-            <label for="brush">Brush Mode:</label>
-            <select id="brush">
-                <option value="wall">Wall</option>
-                <option value="goal">Goal (Reward: +50)</option>
-                <option value="trap">Trap (Penalty: -50)</option>
-                <option value="erase">Erase</option>
-            </select>
-            <button id="startButton">Start Training</button>
-            <button id="stopButton">Stop Training</button>
-            <button id="resetButton">Reset World</button>
+            <h2>Designer Tools</h2>
+            <div class="control-group">
+                <label>Brush</label>
+                <div id="brush-selector" class="brush-selector">
+                    <button id="brush-wall" class="brush-wall active">Wall</button>
+                    <button id="brush-goal" class="brush-goal">Goal</button>
+                    <button id="brush-trap" class="brush-trap">Trap</button>
+                    <button id="brush-erase" class="brush-erase">Erase</button>
+                </div>
+            </div>
+
+            <h2>Simulation Controls</h2>
+            <div class="control-group">
+                <button id="start-btn">Start Learning</button>
+                <button id="stop-btn" disabled>Stop</button>
+                <button id="reset-btn">Reset World & Agent</button>
+            </div>
+             <div class="control-group">
+                <label for="speed-slider">Speed: <span id="speed-value">50</span> ms/step</label>
+                <input type="range" id="speed-slider" min="0" max="200" value="50">
+            </div>
+
+            <h2>Q-Learning Parameters</h2>
+            <div class="control-group">
+                <label for="lr-slider">Learning Rate (α): <span id="lr-value">0.1</span></label>
+                <input type="range" id="lr-slider" min="0.01" max="1" step="0.01" value="0.1">
+            </div>
+            <div class="control-group">
+                <label for="df-slider">Discount Factor (γ): <span id="df-value">0.9</span></label>
+                <input type="range" id="df-slider" min="0.1" max="0.99" step="0.01" value="0.9">
+            </div>
+             <div class="control-group">
+                <label for="er-slider">Exploration Rate (ε): <span id="er-value">0.9</span></label>
+                <input type="range" id="er-slider" min="0.05" max="1" step="0.05" value="0.9">
+            </div>
         </div>
 
-        <canvas id="gridCanvas"></canvas>
+        <div id="grid-container"></div>
 
-        <div class="info">
-            <h3>Live Stats</h3>
-            <p><strong>Status:</strong> <span id="status">Designing</span></p>
-            <p><strong>Episode:</strong> <span id="episode">0</span></p>
-            <p><strong>Total Reward:</strong> <span id="reward">0</span></p>
-            <p><strong>Epsilon (Exploration Rate):</strong> <span id="epsilon">1.00</span></p>
+        <div class="info-panel">
+            <h2>Live Info</h2>
+            <div class="info-group">
+                <label>Episode: <span id="episode-count" class="info-value">0</span></label>
+            </div>
+            <div class="info-group">
+                <label>Steps this Episode: <span id="step-count" class="info-value">0</span></label>
+            </div>
+            <div class="info-group">
+                <label>Total Reward: <span id="total-reward" class="info-value">0</span></label>
+            </div>
+            <div class="info-group">
+                <label>Current Epsilon (ε): <span id="current-epsilon" class="info-value">0.9</span></label>
+            </div>
+             <h2>How it works</h2>
+            <p>
+                The agent (blue dot) explores the grid. Cells turn <strong style="color: green;">green</strong> if they lead to the goal and <strong style="color: red;">red</strong> if they lead to traps. The color intensity shows the agent's confidence in that path. Over time, it will learn the optimal route.
+            </p>
         </div>
     </div>
-    
-    <div class="instructions">
-        <h3>How to Use</h3>
-        <ol>
-            <li>Use the <strong>Brush Mode</strong> dropdown to select what to draw.</li>
-            <li>Click and drag on the grid to create walls, goals, and traps.</li>
-            <li>Click <strong>Start Training</strong> to watch the agent learn.</li>
-            <li>The grid cells will colorize to show the agent's "knowledge": green is good, red is bad.</li>
-            <li>Click <strong>Stop Training</strong> to pause and <strong>Reset World</strong> to start over.</li>
-        </ol>
-    </div>
 
-    <!-- Link to your JavaScript file - MUST be at the end of the body -->
-    <script src="script.js"></script>
+    <!-- Link to the external JavaScript file. 'defer' ensures it runs after the HTML is parsed. -->
+    <script src="script.js" defer></script>
+
 </body>
 </html>
