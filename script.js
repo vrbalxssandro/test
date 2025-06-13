@@ -358,29 +358,37 @@ document.addEventListener('DOMContentLoaded', () => {
         let maxQ = -Infinity, minQ = Infinity;
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
-                const maxValInCell = Math.max(...qTable[y][x]);
-                 if (maxValInCell > maxQ) maxQ = maxQ;
-                 if (maxValInCell < minQ) minQ = minQ;
+                // We only care about non-wall cells for min/max
+                if (grid[y][x] !== CELL_TYPES.WALL) {
+                    const maxValInCell = Math.max(...qTable[y][x]);
+                    if (maxValInCell > maxQ) maxQ = maxValInCell; // CORRECTED
+                    if (maxValInCell < minQ) minQ = maxValInCell; // CORRECTED
+                }
             }
         }
-
+    
+        // A small buffer to prevent division by zero and make colors less extreme
+        const range = (maxQ - minQ) || 1;
+    
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
                 const cellType = grid[y][x];
                 if (cellType === CELL_TYPES.EMPTY) {
                     const cellEl = getCellElement(x, y);
                     const cellMaxQ = Math.max(...qTable[y][x]);
-                    
+    
                     if (cellMaxQ > 0) {
                         // Green for positive Q-values (good path)
-                        const intensity = Math.min(1, cellMaxQ / (maxQ || 1)) * 50;
+                        // Normalize based on the range of positive values
+                        const intensity = Math.min(1, cellMaxQ / (maxQ || 1)) * 60;
                         cellEl.style.backgroundColor = `hsl(120, 70%, ${90 - intensity}%)`;
                     } else if (cellMaxQ < 0) {
                         // Red for negative Q-values (bad path)
-                        const intensity = Math.min(1, cellMaxQ / (minQ || -1)) * 50;
+                        // Normalize based on the range of negative values
+                        const intensity = Math.min(1, cellMaxQ / (minQ || -1)) * 60;
                         cellEl.style.backgroundColor = `hsl(0, 70%, ${90 - intensity}%)`;
                     } else {
-                        cellEl.style.backgroundColor = ''; // Default
+                        cellEl.style.backgroundColor = ''; // Default for 0
                     }
                 }
             }
