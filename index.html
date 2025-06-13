@@ -6,7 +6,7 @@
     <title>RL Gridworld Designer</title>
     <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="style.css">
-    
+    <!-- Fix for the favicon 404 error -->
     <link rel="icon" href="data:,">
 </head>
 <body>
@@ -31,7 +31,10 @@
             <div class="control-group">
                 <button id="start-btn">Start Learning</button>
                 <button id="stop-btn" disabled>Stop</button>
-                <button id="reset-btn">Reset World & Agent</button>
+            </div>
+            <div class="control-group">
+                <button id="generate-maze-btn">Generate Random Maze</button>
+                <button id="reset-btn">Reset Agent & Learning</button>
             </div>
              <div class="control-group">
                 <label for="speed-slider">Speed: <span id="speed-value">50</span> ms/step</label>
