@@ -19,36 +19,73 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 16, name: 'World Wide Web Goes Public', year: 1993 },
     ];
 
-    // --- DOM ELEMENTS ---
-    const gameBoard = document.getElementById('game-board');
-    const eventPalette = document.getElementById('event-palette');
-    const submitBtn = document.getElementById('submit-btn');
-    const deleteBtn = document.getElementById('delete-btn');
-    const helpBtn = document.getElementById('help-btn');
-    const statsBtn = document.getElementById('stats-btn');
-    const shareBtn = document.getElementById('share-btn');
-    const newGameBtn = document.getElementById('new-game-btn');
-    const helpModal = document.getElementById('help-modal');
-    const statsModal = document.getElementById('stats-modal');
-    const modalCloses = document.querySelectorAll('.modal-close');
+    // --- STATE MANAGEMENT ---
+    const dom = {}; // Will hold all DOM element references
+    let gameState = {};
+    let stats = {};
 
-    // --- GAME STATE ---
-    let gameState = {
-        secretTimeline: [],
-        currentAttempt: 0,
-        guess: [],
-        isGameOver: false,
-        guessHistory: [],
-    };
+    // --- CORE FUNCTIONS ---
 
-    let stats = {
-        gamesPlayed: 0,
-        wins: 0,
-        currentStreak: 0,
-        maxStreak: 0,
-    };
+    /**
+     * Finds and stores all necessary DOM elements.
+     * This is the FIRST step on initialization.
+     */
+    function queryDomNodes() {
+        dom.gameBoard = document.getElementById('game-board');
+        dom.eventPalette = document.getElementById('event-palette');
+        dom.submitBtn = document.getElementById('submit-btn');
+        dom.deleteBtn = document.getElementById('delete-btn');
+        dom.helpBtn = document.getElementById('help-btn');
+        dom.statsBtn = document.getElementById('stats-btn');
+        dom.shareBtn = document.getElementById('share-btn');
+        dom.newGameBtn = document.getElementById('new-game-btn');
+        dom.helpModal = document.getElementById('help-modal');
+        dom.statsModal = document.getElementById('stats-modal');
+        dom.modalCloses = document.querySelectorAll('.modal-close');
+        dom.statsContent = {
+            gamesPlayed: document.getElementById('games-played'),
+            winPercent: document.getElementById('win-percent'),
+            currentStreak: document.getElementById('current-streak'),
+            maxStreak: document.getElementById('max-streak'),
+            endGameMessage: document.getElementById('end-game-message'),
+        };
+    }
 
-    // --- INITIALIZATION ---
+    /**
+     * Attaches all event listeners.
+     * This is the SECOND step on initialization.
+     */
+    function setupEventListeners() {
+        dom.submitBtn.addEventListener('click', handleSubmit);
+        dom.deleteBtn.addEventListener('click', handleDelete);
+        dom.helpBtn.addEventListener('click', () => dom.helpModal.style.display = 'block');
+        dom.statsBtn.addEventListener('click', () => showStatsModal());
+        dom.newGameBtn.addEventListener('click', initializeGame);
+        dom.shareBtn.addEventListener('click', shareResults);
+
+        dom.modalCloses.forEach(btn => {
+            btn.addEventListener('click', () => {
+                dom.helpModal.style.display = 'none';
+                dom.statsModal.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === dom.helpModal) dom.helpModal.style.display = 'none';
+            if (event.target === dom.statsModal) dom.statsModal.style.display = 'none';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (gameState.isGameOver) return;
+            if (e.key === 'Enter') handleSubmit();
+            if (e.key === 'Backspace') handleDelete();
+        });
+    }
+
+    /**
+     * Resets state and UI for a new game.
+     * This is the THIRD step on initialization, and is called for every new game.
+     */
     function initializeGame() {
         gameState = {
             secretTimeline: [],
@@ -66,12 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
         createGameBoard();
         createEventPalette();
 
-        helpModal.style.display = 'none';
-        statsModal.style.display = 'none';
+        dom.helpModal.style.display = 'none';
+        dom.statsModal.style.display = 'none';
     }
 
+    // --- GAME UI & LOGIC ---
+
     function createGameBoard() {
-        gameBoard.innerHTML = '';
+        dom.gameBoard.innerHTML = '';
         for (let i = 0; i < 6; i++) {
             const row = document.createElement('div');
             row.className = 'attempt-row';
@@ -81,23 +120,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 tile.className = 'tile';
                 row.appendChild(tile);
             }
-            gameBoard.appendChild(row);
+            dom.gameBoard.appendChild(row);
         }
     }
 
     function createEventPalette() {
-        eventPalette.innerHTML = '';
+        dom.eventPalette.innerHTML = '';
         EVENTS_POOL.forEach(event => {
             const key = document.createElement('button');
             key.className = 'event-key';
             key.textContent = event.name;
             key.dataset.id = event.id;
             key.addEventListener('click', () => handleEventSelection(event));
-            eventPalette.appendChild(key);
+            dom.eventPalette.appendChild(key);
         });
     }
 
-    // --- EVENT HANDLERS & LOGIC ---
     function handleEventSelection(event) {
         if (gameState.isGameOver || gameState.guess.length >= 4) return;
         if (gameState.guess.some(e => e.id === event.id)) return;
@@ -112,8 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSubmit() {
-        if (gameState.isGameOver) return;
-        if (gameState.guess.length !== 4) {
+        if (gameState.isGameOver || gameState.guess.length !== 4) {
             shakeCurrentRow();
             return;
         }
@@ -139,16 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < 4; i++) {
                 if (guess[i].id === secret[i].id) {
                     feedback[i] = 'green';
-                    secret[i] = null;
-                    guess[i] = null;
+                    secret[i] = null; guess[i] = null;
                 }
             }
             for (let i = 0; i < 4; i++) {
                 if (guess[i] !== null) {
-                    const secretIndex = secret.findIndex(event => event && event.id === guess[i].id);
+                    const secretIndex = secret.findIndex(e => e && e.id === guess[i].id);
                     if (secretIndex > -1) {
-                        feedback[i] = 'yellow';
-                        secret[secretIndex] = null;
+                        feedback[i] = 'yellow'; secret[secretIndex] = null;
                     } else {
                         feedback[i] = 'gray';
                     }
@@ -160,11 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
         revealFeedback(feedback);
 
         const isCorrect = feedback.every(f => f === 'green');
-        if (isCorrect) {
-            endGame(true);
-        } else if (gameState.currentAttempt === 5) {
-            endGame(false);
-        } else {
+        if (isCorrect) endGame(true);
+        else if (gameState.currentAttempt === 5) endGame(false);
+        else {
             gameState.currentAttempt++;
             gameState.guess = [];
             updatePaletteUsage();
@@ -175,10 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.isGameOver = true;
         updateStats(isWin);
         saveStats();
-        setTimeout(() => showStatsModal(isWin), 2000);
+        setTimeout(() => showStatsModal(isWin), 2000); // Wait for animations
     }
 
-    // --- UI & ANIMATIONS ---
+    // --- UI UPDATES & ANIMATIONS ---
+
     function updateCurrentAttemptUI() {
         const row = document.getElementById(`attempt-${gameState.currentAttempt}`);
         if (!row) return;
@@ -197,14 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function updatePaletteUsage() {
-        const keys = document.querySelectorAll('.event-key');
-        keys.forEach(key => {
+        document.querySelectorAll('.event-key').forEach(key => {
             const eventId = parseInt(key.dataset.id);
-            if (gameState.guess.some(e => e.id === eventId)) {
-                key.classList.add('used');
-            } else {
-                key.classList.remove('used');
-            }
+            key.classList.toggle('used', gameState.guess.some(e => e.id === eventId));
         });
     }
 
@@ -226,25 +255,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- STATS & MODALS ---
+    // --- STATS, MODALS & SHARING ---
+
     function showStatsModal(isWin = null) {
-        const messageDiv = document.getElementById('end-game-message');
-        messageDiv.innerHTML = '';
+        dom.statsContent.endGameMessage.innerHTML = '';
         if (gameState.isGameOver) {
             if (isWin) {
-                messageDiv.innerHTML = '<p>Congratulations! You solved the timeline!</p>';
+                dom.statsContent.endGameMessage.innerHTML = '<p>Congratulations! You solved the timeline!</p>';
             } else {
-                messageDiv.innerHTML = `<p>So close! The correct timeline was:</p>
+                dom.statsContent.endGameMessage.innerHTML = `<p>So close! The correct timeline was:</p>
                     <p><em>${gameState.secretTimeline.map(e => e.name).join(' → ')}</em></p>`;
             }
         }
         updateStatsUI();
-        statsModal.style.display = 'block';
+        dom.statsModal.style.display = 'block';
     }
 
     function loadStats() {
         const storedStats = JSON.parse(localStorage.getItem('chronomixStats'));
-        if (storedStats) stats = storedStats;
+        if (storedStats) stats = storedStats; else stats = { gamesPlayed: 0, wins: 0, currentStreak: 0, maxStreak: 0 };
     }
 
     function saveStats() {
@@ -263,51 +292,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function updateStatsUI() {
-        document.getElementById('games-played').textContent = stats.gamesPlayed;
+        dom.statsContent.gamesPlayed.textContent = stats.gamesPlayed;
         const winPercent = stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
-        document.getElementById('win-percent').textContent = winPercent;
-        document.getElementById('current-streak').textContent = stats.currentStreak;
-        document.getElementById('max-streak').textContent = stats.maxStreak;
-    }
-    
-    // --- SETUP ---
-    
-    /**
-     * **FIX:** Centralizes all event listener attachments into one function.
-     * This ensures all buttons are interactive and prevents errors from
-     * trying to access DOM elements before they are ready.
-     */
-    function setupEventListeners() {
-        // Main game controls
-        submitBtn.addEventListener('click', handleSubmit);
-        deleteBtn.addEventListener('click', handleDelete);
-
-        // Header buttons for modals
-        helpBtn.addEventListener('click', () => helpModal.style.display = 'block');
-        statsBtn.addEventListener('click', () => showStatsModal());
-
-        // Modal-specific buttons
-        newGameBtn.addEventListener('click', initializeGame);
-        shareBtn.addEventListener('click', shareResults);
-
-        // General modal close functionality
-        modalCloses.forEach(btn => {
-            btn.addEventListener('click', () => {
-                helpModal.style.display = 'none';
-                statsModal.style.display = 'none';
-            });
-        });
-        window.addEventListener('click', (event) => {
-            if (event.target === helpModal) helpModal.style.display = 'none';
-            if (event.target === statsModal) statsModal.style.display = 'none';
-        });
-
-        // Keyboard support for main actions
-        document.addEventListener('keydown', (e) => {
-            if (gameState.isGameOver) return;
-            if (e.key === 'Enter') handleSubmit();
-            if (e.key === 'Backspace') handleDelete();
-        });
+        dom.statsContent.winPercent.textContent = winPercent;
+        dom.statsContent.currentStreak.textContent = stats.currentStreak;
+        dom.statsContent.maxStreak.textContent = stats.maxStreak;
     }
 
     function shareResults() {
@@ -315,12 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = `Chronomix ${gameState.isGameOver && attempts <= 6 ? attempts : 'X'}/6`;
         const emojiGrid = gameState.guessHistory.map(row => 
             row.map(color => {
-                switch(color) {
-                    case 'green': return '🟩';
-                    case 'yellow': return '🟨';
-                    case 'blue': return '🟦';
-                    default: return '⬛️';
-                }
+                const map = {'green': '🟩', 'yellow': '🟨', 'blue': '🟦'};
+                return map[color] || '⬛️';
             }).join('')
         ).join('\n');
         
@@ -332,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- START THE GAME ---
-    initializeGame();
+    // --- INITIALIZE ON PAGE LOAD ---
+    queryDomNodes();
     setupEventListeners();
+    initializeGame();
 });
