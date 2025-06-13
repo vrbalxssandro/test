@@ -20,16 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- STATE MANAGEMENT ---
-    const dom = {}; // Will hold all DOM element references
+    const dom = {};
     let gameState = {};
     let stats = {};
 
-    // --- CORE FUNCTIONS ---
-
-    /**
-     * Finds and stores all necessary DOM elements.
-     * This is the FIRST step on initialization.
-     */
     function queryDomNodes() {
         dom.gameBoard = document.getElementById('game-board');
         dom.eventPalette = document.getElementById('event-palette');
@@ -51,10 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    /**
-     * Attaches all event listeners.
-     * This is the SECOND step on initialization.
-     */
     function setupEventListeners() {
         dom.submitBtn.addEventListener('click', handleSubmit);
         dom.deleteBtn.addEventListener('click', handleDelete);
@@ -82,10 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * Resets state and UI for a new game.
-     * This is the THIRD step on initialization, and is called for every new game.
-     */
     function initializeGame() {
         gameState = {
             secretTimeline: [],
@@ -106,8 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.helpModal.style.display = 'none';
         dom.statsModal.style.display = 'none';
     }
-
-    // --- GAME UI & LOGIC ---
 
     function createGameBoard() {
         dom.gameBoard.innerHTML = '';
@@ -157,37 +141,47 @@ document.addEventListener('DOMContentLoaded', () => {
         processGuess();
     }
     
+    /**
+     * **REBUILT LOGIC:** This function now uses a robust two-pass algorithm to
+     * determine feedback, preventing common logical errors. It first finds all
+     * correct-event-in-correct-position (green) matches, then finds all
+     * correct-event-in-wrong-position (yellow) matches from the remainder.
+     */
     function processGuess() {
-        const guess = [...gameState.guess];
-        const secret = [...gameState.secretTimeline];
-        const feedback = new Array(4).fill(null);
-        let isParadox = false;
+        const guess = gameState.guess;
+        const secret = gameState.secretTimeline;
+        const feedback = new Array(4);
 
-        for (let i = 0; i < 3; i++) {
-            if (guess[i].year > guess[i+1].year) {
-                feedback[i+1] = 'blue';
-                isParadox = true;
+        // Make a mutable copy of secret IDs to "consume" as we find matches.
+        const secretEventIds = secret.map(event => event.id);
+
+        // PASS 1: Find GREEN matches (correct event, correct position)
+        for (let i = 0; i < 4; i++) {
+            if (guess[i].id === secret[i].id) {
+                feedback[i] = 'green';
+                // Consume the ID so it can't be used for a yellow match later.
+                const indexToRemove = secretEventIds.indexOf(guess[i].id);
+                if (indexToRemove > -1) {
+                    secretEventIds[indexToRemove] = null;
+                }
             }
         }
-        
-        if (isParadox) {
-            feedback.forEach((val, i) => { if (val === null) feedback[i] = 'gray'; });
-        } else {
-            for (let i = 0; i < 4; i++) {
-                if (guess[i].id === secret[i].id) {
-                    feedback[i] = 'green';
-                    secret[i] = null; guess[i] = null;
-                }
+
+        // PASS 2: Find YELLOW and GRAY matches
+        for (let i = 0; i < 4; i++) {
+            // Skip if we already found a green match in this position.
+            if (feedback[i] === 'green') {
+                continue;
             }
-            for (let i = 0; i < 4; i++) {
-                if (guess[i] !== null) {
-                    const secretIndex = secret.findIndex(e => e && e.id === guess[i].id);
-                    if (secretIndex > -1) {
-                        feedback[i] = 'yellow'; secret[secretIndex] = null;
-                    } else {
-                        feedback[i] = 'gray';
-                    }
-                }
+
+            // Is the guessed event present in the remaining secret IDs?
+            const indexInSecret = secretEventIds.indexOf(guess[i].id);
+            if (indexInSecret > -1) {
+                feedback[i] = 'yellow'; // Correct event, wrong position.
+                // Consume this ID so it can't be used for another yellow match.
+                secretEventIds[indexInSecret] = null;
+            } else {
+                feedback[i] = 'gray'; // Event not in the secret timeline.
             }
         }
 
@@ -208,10 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.isGameOver = true;
         updateStats(isWin);
         saveStats();
-        setTimeout(() => showStatsModal(isWin), 2000); // Wait for animations
+        setTimeout(() => showStatsModal(isWin), 2000);
     }
-
-    // --- UI UPDATES & ANIMATIONS ---
 
     function updateCurrentAttemptUI() {
         const row = document.getElementById(`attempt-${gameState.currentAttempt}`);
@@ -255,8 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- STATS, MODALS & SHARING ---
-
     function showStatsModal(isWin = null) {
         dom.statsContent.endGameMessage.innerHTML = '';
         if (gameState.isGameOver) {
@@ -273,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadStats() {
         const storedStats = JSON.parse(localStorage.getItem('chronomixStats'));
-        if (storedStats) stats = storedStats; else stats = { gamesPlayed: 0, wins: 0, currentStreak: 0, maxStreak: 0 };
+        stats = storedStats || { gamesPlayed: 0, wins: 0, currentStreak: 0, maxStreak: 0 };
     }
 
     function saveStats() {
@@ -304,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = `Chronomix ${gameState.isGameOver && attempts <= 6 ? attempts : 'X'}/6`;
         const emojiGrid = gameState.guessHistory.map(row => 
             row.map(color => {
-                const map = {'green': '🟩', 'yellow': '🟨', 'blue': '🟦'};
+                const map = {'green': '🟩', 'yellow': '🟨'};
                 return map[color] || '⬛️';
             }).join('')
         ).join('\n');
