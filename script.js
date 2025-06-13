@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Draw grid lines
+        ctx.beginPath();
         for (let i = 0; i <= GRID_SIZE; i++) {
             ctx.moveTo(i * CELL_SIZE, 0);
             ctx.lineTo(i * CELL_SIZE, canvas.height);
