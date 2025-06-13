@@ -9,7 +9,6 @@
 
     --color-green: #6aaa64;
     --color-yellow: #c9b458;
-    --color-blue: #4a75b2;
     --color-gray: #787c7e;
     --color-white: #fff;
 }
@@ -136,7 +135,6 @@ main {
 /* Feedback Colors */
 .tile.green { background-color: var(--color-green); border-color: var(--color-green); color: var(--color-white); }
 .tile.yellow { background-color: var(--color-yellow); border-color: var(--color-yellow); color: var(--color-white); }
-.tile.blue { background-color: var(--color-blue); border-color: var(--color-blue); color: var(--color-white); }
 .tile.gray { background-color: var(--color-gray); border-color: var(--color-gray); color: var(--color-white); }
 
 footer {
