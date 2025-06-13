@@ -353,8 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
                 const maxValInCell = Math.max(...qTable[y][x]);
-                 if (maxValInCell > maxQ) maxQ = maxValInCell;
-                 if (maxValInCell < minQ) minQ = maxValInCell;
+                 if (maxValInCell > maxQ) maxQ = maxQ;
+                 if (maxValInCell < minQ) minQ = minQ;
             }
         }
 
