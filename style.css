@@ -34,13 +34,15 @@ h1 {
 .grid-cell.goal { background-color: #4caf50; }
 .grid-cell.trap { background-color: #f44336; }
 .agent {
-    width: 70%;
-    height: 70%;
+    width: 18px;  /* CHANGED: From 70% to a fixed size */
+    height: 18px; /* CHANGED: From 70% to a fixed size */
     background-color: #2196f3;
     border-radius: 50%;
     position: absolute;
-    top: 50%;
-    left: 50%;
+    /* The magic for centering: we set the element's top/left to the cell's center, 
+       then the transform pulls it back by half its own size. */
+    top: 0; 
+    left: 0;
     transform: translate(-50%, -50%);
     z-index: 10;
     transition: top 0.1s linear, left 0.1s linear;
