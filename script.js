@@ -1,253 +1,397 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    const GRID_SIZE = 20;
-    const CELL_SIZE = 30;
-    const canvas = document.getElementById('gridCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.height = GRID_SIZE * CELL_SIZE;
-
-    // RL Parameters
-    const LEARNING_RATE = 0.1; // Alpha
-    const DISCOUNT_FACTOR = 0.9; // Gamma
-    let epsilon = 1.0; // Exploration Rate
-    const EPSILON_DECAY = 0.9995;
+    const GRID_WIDTH = 20;
+    const GRID_HEIGHT = 20;
+    const CELL_TYPES = { EMPTY: 0, WALL: 1, GOAL: 2, TRAP: 3 };
+    const ACTIONS = { UP: 0, DOWN: 1, LEFT: 2, RIGHT: 3 };
     
-    // Rewards
-    const GOAL_REWARD = 50;
-    const TRAP_PENALTY = -50;
-    const MOVE_PENALTY = -1;
+    const REWARDS = {
+        GOAL: 100,
+        TRAP: -100,
+        STEP: -1,
+    };
+
+    // --- DOM ELEMENTS ---
+    const gridContainer = document.getElementById('grid-container');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const brushSelector = document.getElementById('brush-selector');
+    
+    // Sliders & value displays
+    const speedSlider = document.getElementById('speed-slider');
+    const speedValue = document.getElementById('speed-value');
+    const lrSlider = document.getElementById('lr-slider');
+    const lrValue = document.getElementById('lr-value');
+    const dfSlider = document.getElementById('df-slider');
+    const dfValue = document.getElementById('df-value');
+    const erSlider = document.getElementById('er-slider');
+    const erValue = document.getElementById('er-value');
+
+    // Info panel
+    const episodeCountEl = document.getElementById('episode-count');
+    const stepCountEl = document.getElementById('step-count');
+    const totalRewardEl = document.getElementById('total-reward');
+    const currentEpsilonEl = document.getElementById('current-epsilon');
 
     // --- STATE ---
     let grid = [];
-    let qTable = {}; // Using an object as a hash map: "x,y" -> [q_up, q_down, q_left, q_right]
-    let agent = { x: 1, y: 1 };
-    let trainingInterval = null;
-    let isMouseDown = false;
-    let totalReward = 0;
+    let qTable = [];
+    let agent = { x: 1, y: 1, el: null };
+    let goalPos = null;
+    
+    let isRunning = false;
+    let simulationInterval;
+    let currentBrush = CELL_TYPES.WALL;
+    let isDrawing = false;
+    
+    // RL Parameters
+    let learningRate = 0.1;
+    let discountFactor = 0.9;
+    let explorationRate = 0.9;
+    const MIN_EXPLORATION_RATE = 0.01;
+    const EXPLORATION_DECAY_RATE = 0.9995;
+    let simulationSpeed = 50;
+
+    // Stats
     let episodeCount = 0;
-
-    // --- UI ELEMENTS ---
-    const brushSelect = document.getElementById('brush');
-    const startButton = document.getElementById('startButton');
-    const stopButton = document.getElementById('stopButton');
-    const resetButton = document.getElementById('resetButton');
-    const statusSpan = document.getElementById('status');
-    const episodeSpan = document.getElementById('episode');
-    const rewardSpan = document.getElementById('reward');
-    const epsilonSpan = document.getElementById('epsilon');
-
-    // --- CELL TYPES ---
-    const CELL_TYPES = { EMPTY: 0, WALL: 1, GOAL: 2, TRAP: 3 };
-    const CELL_COLORS = {
-        0: '#fff', // Empty
-        1: '#333', // Wall
-        2: 'gold', // Goal
-        3: 'red'  // Trap
-    };
+    let stepCount = 0;
+    let totalReward = 0;
 
     // --- INITIALIZATION ---
-    function initialize() {
-        grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(CELL_TYPES.EMPTY));
-        qTable = {};
-        agent = { x: 1, y: 1 }; // Start position
-        totalReward = 0;
-        episodeCount = 0;
-        epsilon = 1.0;
-        updateUI();
-        draw();
+    function init() {
+        // Set initial slider values
+        lrSlider.value = learningRate;
+        lrValue.textContent = learningRate;
+        dfSlider.value = discountFactor;
+        dfValue.textContent = discountFactor;
+        erSlider.value = explorationRate;
+        erValue.textContent = explorationRate;
+        currentEpsilonEl.textContent = explorationRate.toFixed(3);
+        speedSlider.value = simulationSpeed;
+        speedValue.textContent = simulationSpeed;
+
+        createGrid();
+        resetAgentAndStats();
+        addEventListeners();
     }
 
-    // --- DRAWING ---
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function createGrid() {
+        gridContainer.innerHTML = '';
+        grid = [];
+        qTable = [];
+        gridContainer.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, 1fr)`;
+        
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            grid[y] = [];
+            qTable[y] = [];
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                grid[y][x] = CELL_TYPES.EMPTY;
+                qTable[y][x] = [0, 0, 0, 0]; // Corresponds to UP, DOWN, LEFT, RIGHT
 
-        // Draw Q-value visualization
-        for (let x = 0; x < GRID_SIZE; x++) {
-            for (let y = 0; y < GRID_SIZE; y++) {
-                if (grid[y][x] !== CELL_TYPES.WALL) {
-                    const qValues = getQValues({x, y});
-                    const maxQ = Math.max(...qValues);
-                    const minQ = Math.min(...qValues);
+                const cell = document.createElement('div');
+                cell.classList.add('grid-cell');
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                gridContainer.appendChild(cell);
+            }
+        }
+        // Create agent element
+        agent.el = document.createElement('div');
+        agent.el.classList.add('agent');
+        gridContainer.appendChild(agent.el);
 
-                    if (maxQ > 0) {
-                        ctx.fillStyle = `rgba(0, 255, 0, ${Math.min(1, maxQ / GOAL_REWARD)})`;
-                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    } else if (minQ < 0) {
-                        ctx.fillStyle = `rgba(255, 0, 0, ${Math.min(1, Math.abs(minQ / TRAP_PENALTY))})`;
-                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    }
+        // Place a default goal
+        setCellType(GRID_WIDTH - 2, GRID_HEIGHT - 2, CELL_TYPES.GOAL);
+    }
+
+    function resetAgentAndStats() {
+        agent.x = 1;
+        agent.y = 1;
+        updateAgentPosition();
+
+        explorationRate = parseFloat(erSlider.value);
+        episodeCount = 0;
+        totalReward = 0;
+        
+        resetEpisodeStats();
+        updateInfoPanel();
+    }
+    
+    function resetWorld() {
+        stopSimulation();
+        qTable = [];
+         for (let y = 0; y < GRID_HEIGHT; y++) {
+            qTable[y] = [];
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                qTable[y][x] = [0, 0, 0, 0];
+                if(grid[y][x] !== CELL_TYPES.WALL && grid[y][x] !== CELL_TYPES.GOAL && grid[y][x] !== CELL_TYPES.TRAP) {
+                   getCellElement(x, y).style.backgroundColor = '';
                 }
             }
+        }
+        resetAgentAndStats();
+    }
+    
+    function resetEpisodeStats() {
+        stepCount = 0;
+    }
+
+    // --- EVENT LISTENERS ---
+    function addEventListeners() {
+        startBtn.addEventListener('click', startSimulation);
+        stopBtn.addEventListener('click', stopSimulation);
+        resetBtn.addEventListener('click', resetWorld);
+
+        lrSlider.addEventListener('input', e => {
+            learningRate = parseFloat(e.target.value);
+            lrValue.textContent = learningRate.toFixed(2);
+        });
+        dfSlider.addEventListener('input', e => {
+            discountFactor = parseFloat(e.target.value);
+            dfValue.textContent = discountFactor.toFixed(2);
+        });
+        erSlider.addEventListener('input', e => {
+            explorationRate = parseFloat(e.target.value);
+            erValue.textContent = explorationRate.toFixed(2);
+            currentEpsilonEl.textContent = explorationRate.toFixed(3);
+        });
+        speedSlider.addEventListener('input', e => {
+            simulationSpeed = parseInt(e.target.value);
+            speedValue.textContent = simulationSpeed;
+            if (isRunning) {
+                stopSimulation();
+                startSimulation();
+            }
+        });
+
+        // Drawing on grid
+        gridContainer.addEventListener('mousedown', startDrawing);
+        gridContainer.addEventListener('mouseup', stopDrawing);
+        gridContainer.addEventListener('mouseleave', stopDrawing);
+        gridContainer.addEventListener('mouseover', draw);
+        gridContainer.addEventListener('click', draw); // For single clicks
+
+        // Brush selection
+        brushSelector.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelector('#brush-selector .active').classList.remove('active');
+                e.target.classList.add('active');
+                currentBrush = {
+                    'brush-wall': CELL_TYPES.WALL,
+                    'brush-goal': CELL_TYPES.GOAL,
+                    'brush-trap': CELL_TYPES.TRAP,
+                    'brush-erase': CELL_TYPES.EMPTY,
+                }[e.target.id];
+            }
+        });
+    }
+
+    // --- DRAWING LOGIC ---
+    function startDrawing(e) { isDrawing = true; draw(e); }
+    function stopDrawing() { isDrawing = false; }
+    function draw(e) {
+        if (!isDrawing && e.type !== 'click') return;
+        const cell = e.target.closest('.grid-cell');
+        if (cell) {
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            setCellType(x, y, currentBrush);
+        }
+    }
+    
+    function setCellType(x, y, type) {
+        // Prevent drawing over agent start position
+        if (x === 1 && y === 1) return;
+
+        // Remove old goal if new one is placed
+        if (type === CELL_TYPES.GOAL) {
+            if(goalPos) {
+                grid[goalPos.y][goalPos.x] = CELL_TYPES.EMPTY;
+                updateCellVisual(goalPos.x, goalPos.y);
+            }
+            goalPos = {x, y};
         }
         
-        // Draw grid elements
-        for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-                if (grid[y][x] !== CELL_TYPES.EMPTY) {
-                    ctx.fillStyle = CELL_COLORS[grid[y][x]];
-                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                }
+        // If we are erasing the goal, nullify goalPos
+        if (grid[y][x] === CELL_TYPES.GOAL && type !== CELL_TYPES.GOAL) {
+            goalPos = null;
+        }
+
+        grid[y][x] = type;
+        updateCellVisual(x, y);
+    }
+    
+    function updateCellVisual(x, y) {
+        const cellEl = getCellElement(x,y);
+        cellEl.className = 'grid-cell'; // Reset classes
+        switch(grid[y][x]) {
+            case CELL_TYPES.WALL: cellEl.classList.add('wall'); break;
+            case CELL_TYPES.GOAL: cellEl.classList.add('goal'); break;
+            case CELL_TYPES.TRAP: cellEl.classList.add('trap'); break;
+        }
+    }
+
+    // --- SIMULATION ---
+    function startSimulation() {
+        if (isRunning) return;
+        isRunning = true;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        simulationInterval = setInterval(runStep, simulationSpeed);
+    }
+
+    function stopSimulation() {
+        if (!isRunning) return;
+        isRunning = false;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        clearInterval(simulationInterval);
+    }
+
+    function runStep() {
+        const currentState = { x: agent.x, y: agent.y };
+
+        // 1. Choose action (Exploration vs Exploitation)
+        const action = chooseAction(currentState);
+
+        // 2. Take action, get new state and reward
+        const { nextState, reward, isTerminal } = takeAction(currentState, action);
+
+        // 3. Update Q-Table
+        updateQTable(currentState, action, reward, nextState);
+        
+        // 4. Update agent's position
+        agent.x = nextState.x;
+        agent.y = nextState.y;
+
+        // 5. Update UI
+        updateAgentPosition();
+        visualizeQTable();
+        stepCount++;
+        totalReward += reward;
+
+        if (isTerminal) {
+            episodeCount++;
+            resetEpisodeStats();
+            agent.x = 1;
+            agent.y = 1;
+            
+            // Decay exploration rate
+            if (explorationRate > MIN_EXPLORATION_RATE) {
+                explorationRate *= EXPLORATION_DECAY_RATE;
             }
         }
-
-        // Draw grid lines
-        ctx.beginPath();
-        for (let i = 0; i <= GRID_SIZE; i++) {
-            ctx.moveTo(i * CELL_SIZE, 0);
-            ctx.lineTo(i * CELL_SIZE, canvas.height);
-            ctx.moveTo(0, i * CELL_SIZE);
-            ctx.lineTo(canvas.width, i * CELL_SIZE);
-        }
-        ctx.strokeStyle = '#eee';
-        ctx.stroke();
-
-        // Draw Agent
-        ctx.fillStyle = 'blue';
-        ctx.beginPath();
-        ctx.arc(agent.x * CELL_SIZE + CELL_SIZE / 2, agent.y * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE / 3, 0, 2 * Math.PI);
-        ctx.fill();
+        updateInfoPanel();
     }
-
-    // --- RL LOGIC ---
-    function getStateKey(state) {
-        return `${state.x},${state.y}`;
-    }
-
-    function getQValues(state) {
-        const key = getStateKey(state);
-        if (!qTable[key]) {
-            qTable[key] = [0, 0, 0, 0]; // [Up, Down, Left, Right]
-        }
-        return qTable[key];
-    }
-
+    
+    // --- Q-LEARNING CORE ---
     function chooseAction(state) {
-        const qValues = getQValues(state);
-        if (Math.random() < epsilon) {
-            return Math.floor(Math.random() * 4); // Explore: random action
+        if (Math.random() < explorationRate) {
+            // Explore: choose a random action
+            return Math.floor(Math.random() * 4);
         } else {
-            const maxQ = Math.max(...qValues); // Exploit: best action
-            const bestActions = qValues.map((q, i) => q === maxQ ? i : -1).filter(i => i !== -1);
-            return bestActions[Math.floor(Math.random() * bestActions.length)];
+            // Exploit: choose the best known action
+            const qValues = qTable[state.y][state.x];
+            return qValues.indexOf(Math.max(...qValues));
         }
     }
 
     function takeAction(state, action) {
         let { x, y } = state;
-        if (action === 0) y--; // Up
-        else if (action === 1) y++; // Down
-        else if (action === 2) x--; // Left
-        else if (action === 3) x++; // Right
+        let nextX = x, nextY = y;
 
-        // Check boundaries and walls
-        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE || grid[y][x] === CELL_TYPES.WALL) {
-            return { nextState: state, reward: MOVE_PENALTY, done: false }; // Stay in place
-        }
+        if (action === ACTIONS.UP) nextY--;
+        else if (action === ACTIONS.DOWN) nextY++;
+        else if (action === ACTIONS.LEFT) nextX--;
+        else if (action === ACTIONS.RIGHT) nextX++;
         
-        const nextState = { x, y };
-        const cellType = grid[y][x];
-        let reward = MOVE_PENALTY;
-        let done = false;
+        // Check boundaries and walls
+        if (nextY < 0 || nextY >= GRID_HEIGHT || nextX < 0 || nextX >= GRID_WIDTH || grid[nextY][nextX] === CELL_TYPES.WALL) {
+            nextX = x; // Stay in the same place
+            nextY = y;
+        }
+
+        const nextState = { x: nextX, y: nextY };
+        const cellType = grid[nextY][nextX];
+        let reward = REWARDS.STEP;
+        let isTerminal = false;
 
         if (cellType === CELL_TYPES.GOAL) {
-            reward = GOAL_REWARD;
-            done = true;
+            reward = REWARDS.GOAL;
+            isTerminal = true;
         } else if (cellType === CELL_TYPES.TRAP) {
-            reward = TRAP_PENALTY;
-            done = true;
+            reward = REWARDS.TRAP;
+            isTerminal = true;
         }
-
-        return { nextState, reward, done };
+        
+        return { nextState, reward, isTerminal };
     }
-
+    
     function updateQTable(state, action, reward, nextState) {
-        const oldQValues = getQValues(state);
-        const nextQValues = getQValues(nextState);
-        const oldQValue = oldQValues[action];
-        const maxNextQ = Math.max(...nextQValues);
-
-        // Q-Learning formula
-        const newQValue = oldQValue + LEARNING_RATE * (reward + DISCOUNT_FACTOR * maxNextQ - oldQValue);
+        const oldQValue = qTable[state.y][state.x][action];
+        const nextMaxQ = Math.max(...qTable[nextState.y][nextState.x]);
         
-        const key = getStateKey(state);
-        qTable[key][action] = newQValue;
+        // The Q-learning formula
+        const newQValue = oldQValue + learningRate * (reward + discountFactor * nextMaxQ - oldQValue);
+        
+        qTable[state.y][state.x][action] = newQValue;
     }
 
-    function trainingStep() {
-        const state = { ...agent };
-        const action = chooseAction(state);
-        const { nextState, reward, done } = takeAction(state, action);
-        
-        updateQTable(state, action, reward, nextState);
-        
-        agent = nextState;
-        totalReward += reward;
+    // --- VISUALIZATION ---
+    function updateAgentPosition() {
+        const cell = getCellElement(agent.x, agent.y);
+        const rect = cell.getBoundingClientRect();
+        const containerRect = gridContainer.getBoundingClientRect();
+        agent.el.style.left = `${rect.left - containerRect.left}px`;
+        agent.el.style.top = `${rect.top - containerRect.top}px`;
+    }
 
-        if (done) {
-            agent = { x: 1, y: 1 }; // Reset for next episode
-            episodeCount++;
-            epsilon = Math.max(0.01, epsilon * EPSILON_DECAY); // Decay epsilon
+    function visualizeQTable() {
+        // Find min/max Q-values for normalization
+        let maxQ = -Infinity, minQ = Infinity;
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                const maxValInCell = Math.max(...qTable[y][x]);
+                 if (maxValInCell > maxQ) maxQ = maxValInCell;
+                 if (maxValInCell < minQ) minQ = maxValInCell;
+            }
         }
-        
-        updateUI();
-        draw();
-    }
-    
-    // --- UI & EVENT HANDLERS ---
-    function startTraining() {
-        if (trainingInterval) return;
-        statusSpan.textContent = "Training...";
-        statusSpan.style.color = 'green';
-        trainingInterval = setInterval(trainingStep, 50); // Run a step every 50ms
-    }
 
-    function stopTraining() {
-        clearInterval(trainingInterval);
-        trainingInterval = null;
-        statusSpan.textContent = "Paused";
-        statusSpan.style.color = 'orange';
-    }
-    
-    function updateUI() {
-        episodeSpan.textContent = episodeCount;
-        rewardSpan.textContent = totalReward.toFixed(0);
-        epsilonSpan.textContent = epsilon.toFixed(2);
-    }
-
-    function handleCanvasPaint(e) {
-        const rect = canvas.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
-        const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
-
-        if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
-            const brushType = brushSelect.value;
-            if (brushType === 'wall') grid[y][x] = CELL_TYPES.WALL;
-            else if (brushType === 'goal') grid[y][x] = CELL_TYPES.GOAL;
-            else if (brushType === 'trap') grid[y][x] = CELL_TYPES.TRAP;
-            else if (brushType === 'erase') grid[y][x] = CELL_TYPES.EMPTY;
-            draw();
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                const cellType = grid[y][x];
+                if (cellType === CELL_TYPES.EMPTY) {
+                    const cellEl = getCellElement(x, y);
+                    const cellMaxQ = Math.max(...qTable[y][x]);
+                    
+                    if (cellMaxQ > 0) {
+                        // Green for positive Q-values (good path)
+                        const intensity = Math.min(1, cellMaxQ / (maxQ || 1)) * 50;
+                        cellEl.style.backgroundColor = `hsl(120, 70%, ${90 - intensity}%)`;
+                    } else if (cellMaxQ < 0) {
+                        // Red for negative Q-values (bad path)
+                        const intensity = Math.min(1, cellMaxQ / (minQ || -1)) * 50;
+                        cellEl.style.backgroundColor = `hsl(0, 70%, ${90 - intensity}%)`;
+                    } else {
+                        cellEl.style.backgroundColor = ''; // Default
+                    }
+                }
+            }
         }
     }
 
-    canvas.addEventListener('mousedown', e => {
-        isMouseDown = true;
-        handleCanvasPaint(e);
-    });
-    canvas.addEventListener('mousemove', e => {
-        if (isMouseDown) handleCanvasPaint(e);
-    });
-    canvas.addEventListener('mouseup', () => isMouseDown = false);
-    canvas.addEventListener('mouseleave', () => isMouseDown = false);
-
-    startButton.addEventListener('click', startTraining);
-    stopButton.addEventListener('click', stopTraining);
-    resetButton.addEventListener('click', () => {
-        stopTraining();
-        initialize();
-        statusSpan.textContent = "Designing";
-        statusSpan.style.color = '#007bff';
-    });
-
-    // --- INITIALIZE ON LOAD ---
-    initialize();
+    function updateInfoPanel() {
+        episodeCountEl.textContent = episodeCount;
+        stepCountEl.textContent = stepCount;
+        totalRewardEl.textContent = totalReward;
+        currentEpsilonEl.textContent = explorationRate.toFixed(3);
+    }
+    
+    function getCellElement(x, y) {
+        return gridContainer.children[y * GRID_WIDTH + x];
+    }
+    
+    // --- START THE APP ---
+    init();
 });
