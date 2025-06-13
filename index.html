@@ -3,33 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Year!</title>
+    <title>RL Gridworld Designer</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <h1>RL Gridworld Designer</h1>
+    <p>Design a maze and watch an AI agent learn to solve it!</p>
 
-    <div class="game-container">
-        <div class="header">
-            <h1>Guess the Year</h1>
-            <p class="score-display">Score: <span id="score">0</span></p>
+    <div class="container">
+        <div class="controls">
+            <h3>Controls</h3>
+            <label for="brush">Brush Mode:</label>
+            <select id="brush">
+                <option value="wall">Wall</option>
+                <option value="goal">Goal (Reward: +50)</option>
+                <option value="trap">Trap (Penalty: -50)</option>
+                <option value="erase">Erase</option>
+            </select>
+            <button id="startButton">Start Training</button>
+            <button id="stopButton">Stop Training</button>
+            <button id="resetButton">Reset World</button>
         </div>
 
-        <div class="event-card" id="event-card">
-            <img id="event-image" src="" alt="Event Image" class="event-image">
-            <p id="event-text" class="event-text">Loading event...</p>
+        <canvas id="gridCanvas"></canvas>
+
+        <div class="info">
+            <h3>Live Stats</h3>
+            <p><strong>Status:</strong> <span id="status">Designing</span></p>
+            <p><strong>Episode:</strong> <span id="episode">0</span></p>
+            <p><strong>Total Reward:</strong> <span id="reward">0</span></p>
+            <p><strong>Epsilon (Exploration Rate):</strong> <span id="epsilon">1.00</span></p>
         </div>
-
-        <div class="input-area">
-            <input type="number" id="guess-input" placeholder="Enter a year (e.g., 1995)">
-            <button id="guess-button">Guess</button>
-        </div>
-
-        <p id="feedback" class="feedback-text"></p>
-
-        <button id="next-button" class="hidden">Next Question →</button>
+    </div>
+    
+    <div class="instructions">
+        <h3>How to Use</h3>
+        <ol>
+            <li>Use the <strong>Brush Mode</strong> dropdown to select what to draw.</li>
+            <li>Click and drag on the grid to create walls, goals, and traps.</li>
+            <li>Click <strong>Start Training</strong> to watch the agent learn.</li>
+            <li>The grid cells will colorize to show the agent's "knowledge": green is good, red is bad.</li>
+            <li>Click <strong>Stop Training</strong> to pause and <strong>Reset World</strong> to start over.</li>
+        </ol>
     </div>
 
     <script src="script.js"></script>
