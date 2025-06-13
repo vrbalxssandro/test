@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const GRID_HEIGHT = 20;
     const CELL_TYPES = { EMPTY: 0, WALL: 1, GOAL: 2, TRAP: 3 };
     const ACTIONS = { UP: 0, DOWN: 1, LEFT: 2, RIGHT: 3 };
-    
+
     const REWARDS = {
         GOAL: 100,
         TRAP: -100,
@@ -16,8 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const generateMazeBtn = document.getElementById('generate-maze-btn');
     const brushSelector = document.getElementById('brush-selector');
-    
+
     // Sliders & value displays
     const speedSlider = document.getElementById('speed-slider');
     const speedValue = document.getElementById('speed-value');
@@ -39,12 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let qTable = [];
     let agent = { x: 1, y: 1, el: null };
     let goalPos = null;
-    
+
     let isRunning = false;
     let simulationInterval;
     let currentBrush = CELL_TYPES.WALL;
     let isDrawing = false;
-    
+
     // RL Parameters
     let learningRate = 0.1;
     let discountFactor = 0.9;
@@ -60,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     function init() {
-        // Set initial slider values
         lrSlider.value = learningRate;
         lrValue.textContent = learningRate;
         dfSlider.value = discountFactor;
@@ -81,13 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
         grid = [];
         qTable = [];
         gridContainer.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, 1fr)`;
-        
+
         for (let y = 0; y < GRID_HEIGHT; y++) {
             grid[y] = [];
             qTable[y] = [];
             for (let x = 0; x < GRID_WIDTH; x++) {
                 grid[y][x] = CELL_TYPES.EMPTY;
-                qTable[y][x] = [0, 0, 0, 0]; // Corresponds to UP, DOWN, LEFT, RIGHT
+                qTable[y][x] = [0, 0, 0, 0]; // UP, DOWN, LEFT, RIGHT
 
                 const cell = document.createElement('div');
                 cell.classList.add('grid-cell');
@@ -96,12 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridContainer.appendChild(cell);
             }
         }
-        // Create agent element
         agent.el = document.createElement('div');
         agent.el.classList.add('agent');
         gridContainer.appendChild(agent.el);
 
-        // Place a default goal
         setCellType(GRID_WIDTH - 2, GRID_HEIGHT - 2, CELL_TYPES.GOAL);
     }
 
@@ -113,35 +111,35 @@ document.addEventListener('DOMContentLoaded', () => {
         explorationRate = parseFloat(erSlider.value);
         episodeCount = 0;
         totalReward = 0;
-        
+
         resetEpisodeStats();
         updateInfoPanel();
     }
-    
+
     function resetWorld() {
         stopSimulation();
         qTable = [];
-         for (let y = 0; y < GRID_HEIGHT; y++) {
+        for (let y = 0; y < GRID_HEIGHT; y++) {
             qTable[y] = [];
             for (let x = 0; x < GRID_WIDTH; x++) {
                 qTable[y][x] = [0, 0, 0, 0];
-                if(grid[y][x] !== CELL_TYPES.WALL && grid[y][x] !== CELL_TYPES.GOAL && grid[y][x] !== CELL_TYPES.TRAP) {
-                   getCellElement(x, y).style.backgroundColor = '';
+                if (grid[y][x] !== CELL_TYPES.WALL && grid[y][x] !== CELL_TYPES.GOAL && grid[y][x] !== CELL_TYPES.TRAP) {
+                    getCellElement(x, y).style.backgroundColor = '';
                 }
             }
         }
         resetAgentAndStats();
     }
-    
+
     function resetEpisodeStats() {
         stepCount = 0;
     }
 
-    // --- EVENT LISTENERS ---
     function addEventListeners() {
         startBtn.addEventListener('click', startSimulation);
         stopBtn.addEventListener('click', stopSimulation);
         resetBtn.addEventListener('click', resetWorld);
+        generateMazeBtn.addEventListener('click', generateMaze);
 
         lrSlider.addEventListener('input', e => {
             learningRate = parseFloat(e.target.value);
@@ -165,14 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Drawing on grid
         gridContainer.addEventListener('mousedown', startDrawing);
         gridContainer.addEventListener('mouseup', stopDrawing);
         gridContainer.addEventListener('mouseleave', stopDrawing);
         gridContainer.addEventListener('mouseover', draw);
-        gridContainer.addEventListener('click', draw); // For single clicks
+        gridContainer.addEventListener('click', draw);
 
-        // Brush selection
         brushSelector.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 document.querySelector('#brush-selector .active').classList.remove('active');
@@ -187,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- DRAWING LOGIC ---
     function startDrawing(e) { isDrawing = true; draw(e); }
     function stopDrawing() { isDrawing = false; }
     function draw(e) {
@@ -199,21 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
             setCellType(x, y, currentBrush);
         }
     }
-    
+
     function setCellType(x, y, type) {
-        // Prevent drawing over agent start position
         if (x === 1 && y === 1) return;
 
-        // Remove old goal if new one is placed
         if (type === CELL_TYPES.GOAL) {
-            if(goalPos) {
+            if (goalPos) {
                 grid[goalPos.y][goalPos.x] = CELL_TYPES.EMPTY;
                 updateCellVisual(goalPos.x, goalPos.y);
             }
-            goalPos = {x, y};
+            goalPos = { x, y };
         }
-        
-        // If we are erasing the goal, nullify goalPos
+
         if (grid[y][x] === CELL_TYPES.GOAL && type !== CELL_TYPES.GOAL) {
             goalPos = null;
         }
@@ -221,18 +213,91 @@ document.addEventListener('DOMContentLoaded', () => {
         grid[y][x] = type;
         updateCellVisual(x, y);
     }
-    
+
     function updateCellVisual(x, y) {
-        const cellEl = getCellElement(x,y);
-        cellEl.className = 'grid-cell'; // Reset classes
-        switch(grid[y][x]) {
+        const cellEl = getCellElement(x, y);
+        cellEl.className = 'grid-cell';
+        switch (grid[y][x]) {
             case CELL_TYPES.WALL: cellEl.classList.add('wall'); break;
             case CELL_TYPES.GOAL: cellEl.classList.add('goal'); break;
             case CELL_TYPES.TRAP: cellEl.classList.add('trap'); break;
         }
     }
 
-    // --- SIMULATION ---
+    /**
+     * Generates a new random maze, places a goal and traps, and updates the display.
+     */
+    function generateMaze() {
+        stopSimulation();
+        // Custom reset: clear grid but don't reset learning yet
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                grid[y][x] = CELL_TYPES.WALL;
+                getCellElement(x, y).style.backgroundColor = '';
+            }
+        }
+        
+        const visited = Array(GRID_HEIGHT).fill(null).map(() => Array(GRID_WIDTH).fill(false));
+        
+        function carvePassagesFrom(cx, cy) {
+            visited[cy][cx] = true;
+            grid[cy][cx] = CELL_TYPES.EMPTY;
+
+            const directions = [{ x: 0, y: -2 }, { x: 0, y: 2 }, { x: -2, y: 0 }, { x: 2, y: 0 }];
+            directions.sort(() => Math.random() - 0.5);
+
+            for (const dir of directions) {
+                const nx = cx + dir.x;
+                const ny = cy + dir.y;
+                if (ny >= 0 && ny < GRID_HEIGHT && nx >= 0 && nx < GRID_WIDTH && !visited[ny][nx]) {
+                    grid[cy + dir.y / 2][cx + dir.x / 2] = CELL_TYPES.EMPTY;
+                    carvePassagesFrom(nx, ny);
+                }
+            }
+        }
+
+        carvePassagesFrom(1, 1);
+
+        grid[GRID_HEIGHT - 2][GRID_WIDTH - 2] = CELL_TYPES.EMPTY;
+        setCellType(GRID_WIDTH - 2, GRID_HEIGHT - 2, CELL_TYPES.GOAL);
+
+        const deadEnds = [];
+        for (let y = 1; y < GRID_HEIGHT - 1; y++) {
+            for (let x = 1; x < GRID_WIDTH - 1; x++) {
+                if (grid[y][x] === CELL_TYPES.EMPTY) {
+                    let neighbors = 0;
+                    if (grid[y-1][x] !== CELL_TYPES.WALL) neighbors++;
+                    if (grid[y+1][x] !== CELL_TYPES.WALL) neighbors++;
+                    if (grid[y][x-1] !== CELL_TYPES.WALL) neighbors++;
+                    if (grid[y][x+1] !== CELL_TYPES.WALL) neighbors++;
+                    
+                    if (neighbors === 1) {
+                        const isNearStart = Math.abs(x - 1) + Math.abs(y - 1) <= 2;
+                        const isNearGoal = Math.abs(x - (GRID_WIDTH-2)) + Math.abs(y - (GRID_HEIGHT-2)) <= 2;
+                        if (!isNearStart && !isNearGoal) {
+                            deadEnds.push({x, y});
+                        }
+                    }
+                }
+            }
+        }
+
+        deadEnds.sort(() => Math.random() - 0.5);
+        const trapCount = Math.floor(GRID_WIDTH * GRID_HEIGHT / 40);
+        for(let i = 0; i < Math.min(trapCount, deadEnds.length); i++) {
+            const {x, y} = deadEnds[i];
+            setCellType(x, y, CELL_TYPES.TRAP);
+        }
+
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                updateCellVisual(x, y);
+            }
+        }
+        // Now fully reset the learning state for the new maze
+        resetWorld();
+    }
+
     function startSimulation() {
         if (isRunning) return;
         isRunning = true;
@@ -251,21 +316,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function runStep() {
         const currentState = { x: agent.x, y: agent.y };
-
-        // 1. Choose action (Exploration vs Exploitation)
         const action = chooseAction(currentState);
-
-        // 2. Take action, get new state and reward
         const { nextState, reward, isTerminal } = takeAction(currentState, action);
 
-        // 3. Update Q-Table
         updateQTable(currentState, action, reward, nextState);
         
-        // 4. Update agent's position
         agent.x = nextState.x;
         agent.y = nextState.y;
 
-        // 5. Update UI
         updateAgentPosition();
         visualizeQTable();
         stepCount++;
@@ -277,21 +335,17 @@ document.addEventListener('DOMContentLoaded', () => {
             agent.x = 1;
             agent.y = 1;
             
-            // Decay exploration rate
             if (explorationRate > MIN_EXPLORATION_RATE) {
                 explorationRate *= EXPLORATION_DECAY_RATE;
             }
         }
         updateInfoPanel();
     }
-    
-    // --- Q-LEARNING CORE ---
+
     function chooseAction(state) {
         if (Math.random() < explorationRate) {
-            // Explore: choose a random action
             return Math.floor(Math.random() * 4);
         } else {
-            // Exploit: choose the best known action
             const qValues = qTable[state.y][state.x];
             return qValues.indexOf(Math.max(...qValues));
         }
@@ -306,9 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (action === ACTIONS.LEFT) nextX--;
         else if (action === ACTIONS.RIGHT) nextX++;
         
-        // Check boundaries and walls
         if (nextY < 0 || nextY >= GRID_HEIGHT || nextX < 0 || nextX >= GRID_WIDTH || grid[nextY][nextX] === CELL_TYPES.WALL) {
-            nextX = x; // Stay in the same place
+            nextX = x;
             nextY = y;
         }
 
@@ -327,68 +380,49 @@ document.addEventListener('DOMContentLoaded', () => {
         
         return { nextState, reward, isTerminal };
     }
-    
+
     function updateQTable(state, action, reward, nextState) {
         const oldQValue = qTable[state.y][state.x][action];
         const nextMaxQ = Math.max(...qTable[nextState.y][nextState.x]);
-        
-        // The Q-learning formula
         const newQValue = oldQValue + learningRate * (reward + discountFactor * nextMaxQ - oldQValue);
-        
         qTable[state.y][state.x][action] = newQValue;
     }
 
-    // --- VISUALIZATION ---
-    // Find this existing function and replace it with the code below
     function updateAgentPosition() {
         const cell = getCellElement(agent.x, agent.y);
-        
-        // NEW LOGIC: Calculate the center of the cell
         const cellCenterX = cell.offsetLeft + cell.offsetWidth / 2;
         const cellCenterY = cell.offsetTop + cell.offsetHeight / 2;
-    
-        // Position the agent's top/left at the cell's center.
-        // The CSS 'transform' will handle the rest.
         agent.el.style.left = `${cellCenterX}px`;
         agent.el.style.top = `${cellCenterY}px`;
     }
 
     function visualizeQTable() {
-        // Find min/max Q-values for normalization
         let maxQ = -Infinity, minQ = Infinity;
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
-                // We only care about non-wall cells for min/max
                 if (grid[y][x] !== CELL_TYPES.WALL) {
                     const maxValInCell = Math.max(...qTable[y][x]);
-                    if (maxValInCell > maxQ) maxQ = maxValInCell; // CORRECTED
-                    if (maxValInCell < minQ) minQ = maxValInCell; // CORRECTED
+                    if (maxValInCell > maxQ) maxQ = maxValInCell;
+                    if (maxValInCell < minQ) minQ = maxValInCell;
                 }
             }
         }
-    
-        // A small buffer to prevent division by zero and make colors less extreme
-        const range = (maxQ - minQ) || 1;
-    
+
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
                 const cellType = grid[y][x];
                 if (cellType === CELL_TYPES.EMPTY) {
                     const cellEl = getCellElement(x, y);
                     const cellMaxQ = Math.max(...qTable[y][x]);
-    
-                    if (cellMaxQ > 0) {
-                        // Green for positive Q-values (good path)
-                        // Normalize based on the range of positive values
+                    
+                    if (cellMaxQ > 0.01) {
                         const intensity = Math.min(1, cellMaxQ / (maxQ || 1)) * 60;
                         cellEl.style.backgroundColor = `hsl(120, 70%, ${90 - intensity}%)`;
-                    } else if (cellMaxQ < 0) {
-                        // Red for negative Q-values (bad path)
-                        // Normalize based on the range of negative values
+                    } else if (cellMaxQ < -0.01) {
                         const intensity = Math.min(1, cellMaxQ / (minQ || -1)) * 60;
                         cellEl.style.backgroundColor = `hsl(0, 70%, ${90 - intensity}%)`;
                     } else {
-                        cellEl.style.backgroundColor = ''; // Default for 0
+                        cellEl.style.backgroundColor = '';
                     }
                 }
             }
@@ -406,6 +440,5 @@ document.addEventListener('DOMContentLoaded', () => {
         return gridContainer.children[y * GRID_WIDTH + x];
     }
     
-    // --- START THE APP ---
     init();
 });
