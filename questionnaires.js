@@ -489,7 +489,7 @@ const questionnaires = {
             { text: "I have been diagnosed with nutritional deficiencies (like anemia) due to my diet." },
             { text: "I often feel full quickly or experience abdominal pain after eating small amounts." },
             { text: "My eating habits significantly interfere with my social life (e.g., I avoid restaurants, parties, or eating with others)." },
-            { text: "I am not concerned with my body weight or shape, and my food restriction is not about trying to lose weight." },
+            { text: "I am not concerned with my body shape or size, and my food restriction is not about trying to lose weight." },
             { text: "A past negative experience with food (e.g., choking or getting sick) triggered or worsened my eating problems." },
             { text: "I have difficulty recognizing hunger cues or often forget to eat." },
             { text: "I rely on nutritional supplements (like Ensure/PediaSure) or a very limited range of foods to get my calories." },
