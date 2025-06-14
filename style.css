@@ -132,7 +132,8 @@ h2 { color: var(--text-main); font-weight: 700; }
 #results-container { animation: fadeIn 0.5s ease; }
 #progress-container { width: 100%; height: 8px; background-color: var(--border-color); border-radius: 999px; margin-bottom: 2rem; overflow: hidden; }
 #progress-bar { height: 100%; width: 0%; background-color: var(--color-primary); border-radius: 999px; transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
-#bar-chart-container, #spectrum-profile-container { display: grid; gap: 1.5rem; margin: 1.5rem 0; text-align: left; }
+#bar-chart-container { display: grid; gap: 1.5rem; margin: 1.5rem 0; text-align: left; }
+.answered-count { color: var(--text-light); font-style: italic; margin-top: -1rem; margin-bottom: 2rem; }
 .result-item { display: grid; grid-template-columns: 1fr 100px; grid-template-areas: "title percent" "bar bar"; align-items: center; gap: 0.5rem 1rem; animation: popIn 0.5s ease-out backwards; }
 .result-title { grid-area: title; font-weight: 600; font-size: 1.1rem; }
 .result-percentage { grid-area: percent; font-weight: 700; font-size: 1.2rem; color: var(--color-primary); text-align: right; }
@@ -144,13 +145,14 @@ h2 { color: var(--text-main); font-weight: 700; }
 #scroll-top-btn.visible { opacity: 1; visibility: visible; transform: scale(1); }
 #scroll-top-btn:hover { color: var(--color-primary); transform: scale(1.1); }
 
-/* --- GAUGE CHART --- */
+/* --- INFOGRAPHICS --- */
 #gauge-container { width: 250px; height: 125px; margin: 2rem auto; position: relative; overflow: hidden; }
 .gauge-background { width: 100%; height: 200%; background: var(--gauge-gradient); border-radius: 50%; position: absolute; top: 0; }
 .gauge-mask { width: 200px; height: 100px; background: var(--bg-inset); border-radius: 200px 200px 0 0; position: absolute; top: 25px; left: 25px; }
 .gauge-needle { width: 4px; height: 90px; background: var(--text-main); border-radius: 2px; position: absolute; left: calc(50% - 2px); bottom: 0; transform-origin: bottom center; transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1); transform: rotate(var(--gauge-rotation, -90deg)); }
 .gauge-center { width: 20px; height: 20px; background: var(--text-main); border-radius: 50%; position: absolute; left: calc(50% - 10px); bottom: -10px; }
 .gauge-value { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 2.5rem; font-weight: 700; color: var(--color-primary); }
+#radar-chart-container { max-width: 500px; margin: 1rem auto; }
 
 /* --- CONTEXT GATE --- */
 #user-context-gate { background-color: var(--bg-inset); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); }
