@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to All Questionnaires</a>
+            <h1 id="questionnaire-title">Loading...</h1>
+        </header>
+        
+        <div class="disclaimer-box">
+            <p><strong>Reminder:</strong> This is not a diagnostic tool. Your results are a likelihood score to help you determine if seeking professional advice is a good next step. Answer based on your experiences over the last 6 months to a year, or for your entire life, as appropriate.</p>
+        </div>
+
+        <main>
+            <p id="questionnaire-description"></p>
+            <form id="questionnaire-form">
+                <div id="questions-container">
+                    <!-- Questions will be dynamically inserted here -->
+                </div>
+                <button type="submit" class="submit-btn">Calculate My Score</button>
+            </form>
+
+            <div id="results-container" class="hidden">
+                <h2>Your Results</h2>
+                <div id="score-display"></div>
+                <div id="spectrum-profile-container"></div>
+                <div class="disclaimer-box critical">
+                    <h3>Interpreting Your Score</h3>
+                    <p id="result-interpretation"></p>
+                    <p>
+                        <strong>Regardless of your score, if you are struggling, it is always a good idea to talk to a professional.</strong> They can provide a comprehensive evaluation that considers your full personal history and context, which this tool cannot do.
+                    </p>
+                </div>
+                 <a href="index.html" class="back-link">Take another questionnaire</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="questionnaires.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
