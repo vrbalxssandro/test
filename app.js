@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(questionnaireForm);
 
         for (const key in questionnaires) {
-            if (key !== 'all-in-one') { // Initialize all possible disorders
+            if (key !== 'all-in-one') {
                 results[key] = { score: 0, count: 0, title: questionnaires[key].title };
             }
         }
