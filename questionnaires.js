@@ -19,55 +19,28 @@ const questionnaires = {
         title: 'Comprehensive Symptom Mapper',
         description: 'This is a curated screener designed to identify potential areas of concern across a broad range of conditions. It is not exhaustive. Its purpose is to highlight patterns and symptom overlaps that you can discuss with a professional.',
         questions: [
-            // --- MOOD & EMOTION ---
-            { text: "I feel a persistent sense of sadness, emptiness, or hopelessness.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'bpd', 'bipolar-spectrum'] },
-            { text: "I have lost interest or pleasure in activities I once found enjoyable (anhedonia).", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'ptsd'] },
-            { text: "My emotional reactions feel far more intense than the situation seems to warrant.", mapsTo: ['adhd-adult', 'adhd-teen', 'bpd', 'bipolar-spectrum'] },
-            { text: "My mood is extremely reactive and can shift dramatically within a single day.", mapsTo: ['bpd', 'adhd-adult', 'bipolar-spectrum'] },
-            { text: "I have distinct periods of feeling unusually 'up,' energetic, or irritable, needing little sleep but feeling full of energy.", mapsTo: ['bipolar-spectrum'] },
-            { text: "I have a chronic, long-standing feeling of emptiness inside.", mapsTo: ['bpd', 'pdd-dysthymia'] },
-            { text: "I have a short temper and can become quickly irritable over minor frustrations.", mapsTo: ['gad', 'mdd-teen', 'adhd-adult', 'ptsd'] },
-
-            // --- ANXIETY & WORRY ---
-            { text: "I worry uncontrollably about a wide range of different things, and find it difficult to stop.", mapsTo: ['gad'] },
-            { text: "I experience intense fear and anxiety in social situations because I'm afraid of being watched or judged.", mapsTo: ['social-anxiety', 'avpd'] },
-            { text: "I am plagued by unwanted, intrusive thoughts or images that I find disturbing (obsessions).", mapsTo: ['ocd', 'ptsd'] },
-            { text: "I feel driven to perform certain repetitive behaviors or mental rituals to reduce my anxiety (compulsions).", mapsTo: ['ocd'] },
-            { text: "I am constantly 'on guard' for danger and am easily startled (hypervigilance).", mapsTo: ['ptsd', 'gad'] },
-
-            // --- COGNITION & FOCUS ---
-            { text: "I have significant difficulty concentrating, and my mind often wanders or feels 'foggy'.", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd', 'mdd-teen', 'gad', 'ptsd'] },
-            { text: "I am very forgetful in my daily life (e.g., losing items, forgetting appointments).", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd'] },
-            { text: "The thought of organizing a complex task feels so overwhelming that I avoid it completely.", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd'] },
-            { text: "I have a very poor sense of time, often being very late or misjudging how long tasks will take.", mapsTo: ['adhd-adult', 'adhd-teen', 'dsps'] },
-            { text: "I find small talk confusing and exhausting; I prefer deep, focused conversations.", mapsTo: ['autism-spectrum'] },
-
-            // --- BEHAVIOR & IMPULSE CONTROL ---
-            { text: "I make impulsive decisions with significant consequences (e.g., spending, relationships, career choices).", mapsTo: ['bpd', 'adhd-adult', 'bipolar-spectrum'] },
-            { text: "I actively avoid situations, places, or people that remind me of a past traumatic event.", mapsTo: ['ptsd', 'social-anxiety'] },
-            { text: "I engage in repetitive physical movements (stimming) like rocking, pacing, or hand-flapping to regulate my emotions.", mapsTo: ['autism-spectrum'] },
-            { text: "I have a strong need for my routines and rituals, and I get deeply distressed if they are disrupted.", mapsTo: ['autism-spectrum', 'ocd'] },
-            
-            // --- SELF-PERCEPTION & RELATIONSHIPS ---
-            { text: "I have a deep-seated belief that I am fundamentally flawed, inadequate, or inferior to others.", mapsTo: ['avpd', 'bpd', 'pdd-dysthymia', 'mdd'] },
-            { text: "My relationships are often intense and unstable, swinging between seeing people as perfect and seeing them as terrible.", mapsTo: ['bpd'] },
-            { text: "I make frantic efforts to avoid real or imagined abandonment.", mapsTo: ['bpd'] },
-            { text: "I avoid getting close to people unless I am absolutely certain they will like me.", mapsTo: ['avpd', 'social-anxiety'] },
-            { text: "I feel like I have to 'mask' or perform a version of myself to fit in socially.", mapsTo: ['autism-spectrum', 'social-anxiety'] },
-
-            // --- PHYSICAL & SOMATIC ---
-            { text: "I feel an internal restlessness in my body, even when I am sitting still.", mapsTo: ['adhd-adult', 'adhd-teen', 'gad'] },
-            { text: "My muscles are often tense or sore, or I experience unexplained aches and pains.", mapsTo: ['gad', 'mdd', 'ptsd'] },
-            { text: "I am extremely sensitive to sensory input like bright lights, loud sounds, or specific textures.", mapsTo: ['autism-spectrum', 'ptsd'] },
-            
-            // --- SLEEP PATTERNS ---
-            { text: "I have persistent trouble falling asleep, staying asleep, or I wake up feeling unrefreshed.", mapsTo: ['insomnia', 'mdd', 'gad', 'ptsd'] },
-            { text: "If left to my own devices, my body's natural schedule is to sleep very late (e.g., 3 AM) and wake up very late (e.g., 11 AM).", mapsTo: ['dsps'] },
-
-            // --- EATING PATTERNS ---
-            { text: "I avoid many foods due to their sensory characteristics (texture, smell) or a fear of aversive consequences (choking, vomiting), NOT due to body image concerns.", mapsTo: ['arfid', 'autism-spectrum'] },
-            { text: "My eating habits have led to significant weight loss or nutritional deficiencies.", mapsTo: ['arfid', 'mdd'] },
-
+            { text: "I feel a persistent sense of sadness, emptiness, or hopelessness.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'bpd', 'bipolar-spectrum'], axis: 'Mood & Emotion' },
+            { text: "I have lost interest or pleasure in activities I once found enjoyable.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'ptsd'], axis: 'Mood & Emotion' },
+            { text: "My emotional reactions feel far more intense than the situation seems to warrant.", mapsTo: ['adhd-adult', 'adhd-teen', 'bpd', 'bipolar-spectrum'], axis: 'Mood & Emotion' },
+            { text: "I have distinct periods of feeling unusually 'up,' energetic, or irritable, needing little sleep but feeling full of energy.", mapsTo: ['bipolar-spectrum'], axis: 'Mood & Emotion' },
+            { text: "I worry uncontrollably about a wide range of different things, and find it difficult to stop.", mapsTo: ['gad'], axis: 'Anxiety & Obsession' },
+            { text: "I experience intense fear and anxiety in social situations because I'm afraid of being watched or judged.", mapsTo: ['social-anxiety', 'avpd'], axis: 'Social & Interpersonal' },
+            { text: "I am plagued by unwanted, intrusive thoughts or images that I find disturbing (obsessions).", mapsTo: ['ocd', 'ptsd'], axis: 'Anxiety & Obsession' },
+            { text: "I feel driven to perform certain repetitive behaviors or mental rituals to reduce my anxiety (compulsions).", mapsTo: ['ocd'], axis: 'Behavioral Patterns' },
+            { text: "I am constantly 'on guard' for danger and am easily startled (hypervigilance).", mapsTo: ['ptsd', 'gad'], axis: 'Anxiety & Obsession' },
+            { text: "I have significant difficulty concentrating, and my mind often wanders or feels 'foggy'.", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd', 'mdd-teen', 'gad', 'ptsd'], axis: 'Cognition & Focus' },
+            { text: "I am very forgetful in my daily life (e.g., losing items, forgetting appointments).", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd'], axis: 'Cognition & Focus' },
+            { text: "The thought of organizing a complex task feels so overwhelming that I avoid it completely.", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd'], axis: 'Cognition & Focus' },
+            { text: "I make impulsive decisions with significant consequences (e.g., spending, relationships, career choices).", mapsTo: ['bpd', 'adhd-adult', 'bipolar-spectrum'], axis: 'Behavioral Patterns' },
+            { text: "I have a strong need for my routines and rituals, and I get deeply distressed if they are disrupted.", mapsTo: ['autism-spectrum', 'ocd'], axis: 'Behavioral Patterns' },
+            { text: "I have a deep-seated belief that I am fundamentally flawed, inadequate, or inferior to others.", mapsTo: ['avpd', 'bpd', 'pdd-dysthymia', 'mdd'], axis: 'Social & Interpersonal' },
+            { text: "My relationships are often intense and unstable, swinging between seeing people as perfect and seeing them as terrible.", mapsTo: ['bpd'], axis: 'Social & Interpersonal' },
+            { text: "I make frantic efforts to avoid real or imagined abandonment.", mapsTo: ['bpd'], axis: 'Social & Interpersonal' },
+            { text: "I feel like I have to 'mask' or perform a version of myself to fit in socially.", mapsTo: ['autism-spectrum', 'social-anxiety'], axis: 'Social & Interpersonal' },
+            { text: "I am extremely sensitive to sensory input like bright lights, loud sounds, or specific textures.", mapsTo: ['autism-spectrum', 'ptsd'], axis: 'Somatic & Sleep' },
+            { text: "I have persistent trouble falling asleep, staying asleep, or I wake up feeling unrefreshed.", mapsTo: ['insomnia', 'mdd', 'gad', 'ptsd'], axis: 'Somatic & Sleep' },
+            { text: "If left to my own devices, my body's natural schedule is to sleep very late (e.g., 3 AM) and wake up very late (e.g., 11 AM).", mapsTo: ['dsps'], axis: 'Somatic & Sleep' },
+            { text: "I avoid many foods due to their sensory characteristics (texture, smell) or a fear of aversive consequences (choking, vomiting), NOT due to body image concerns.", mapsTo: ['arfid', 'autism-spectrum'], axis: 'Behavioral Patterns' },
         ].concat(SAFETY_WARNING_QUESTIONS)
     },
     'adhd-adult': {
