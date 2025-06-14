@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PAGE-SPECIFIC HANDLERS ---
     
     function handleIndexPage() {
-        // This page is simple and doesn't need specific logic after theme/qol init.
+        // This page is simple and doesn't need specific JS logic after theme/qol init.
     }
 
     function handleHealthPage() {
@@ -68,13 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('user-context-gate').classList.add('hidden');
             const selectionDiv = document.getElementById('questionnaire-selection');
-            selectionDiv.classList.remove('hidden');
             selectionDiv.style.display = 'block';
             populateQuestionnaireList(ageGroup, healthQuestionnaires, 'health');
         });
     }
     
     function handleCognitivePage() {
+        const selectionDiv = document.getElementById('questionnaire-selection');
+        selectionDiv.style.display = 'block';
         populateQuestionnaireList(null, cognitiveQuizzes, 'cognitive');
     }
     
@@ -155,8 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         questionnaireForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            // Show all results containers by default, then hide unused ones
-            container.querySelectorAll('#results-visuals > div').forEach(div => div.classList.add('hidden'));
+            const resultsVisuals = document.getElementById('results-visuals');
+            resultsVisuals.querySelectorAll(':scope > div').forEach(div => div.classList.add('hidden'));
 
             if (questionnaire.type === 'learning-style') {
                 calculateLearningStyle(questionnaire, questionnaireForm, resultsContainer);
@@ -164,11 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 calculateScoredQuiz(questionnaire, questionnaireForm, resultsContainer);
             } else if (questionnaire.type === 'trait-profile') {
                 calculateTraitProfile(questionnaire, questionnaireForm, resultsContainer);
-            } else if (qId === 'all-in-one') {
+            } else if (questionnaire.type === 'radar-chart') {
                 calculateSymptomMapResults(questionnaire, questionnaireForm, resultsContainer);
             } else {
                 calculateSingleResult(questionnaire, questionnaireForm, resultsContainer);
             }
+
+            document.getElementById('results-disclaimer').style.display = questionnaire.isHealth ? 'block' : 'none';
 
             questionnaireForm.classList.add('hidden');
             progressContainer.classList.add('hidden');
@@ -243,32 +246,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ... All other functions (updateProgressBar, setAnsweredCount, calculation functions, copy function)
-    function updateProgressBar(questionnaire, form, bar) {
-        const total = questionnaire.questions.length;
-        const answered = form.querySelectorAll('input[type="radio"]:checked').length;
-        const progress = total > 0 ? (answered / total) * 100 : 0;
-        bar.style.width = `${progress}%`;
-    }
-    
-    function setAnsweredCount(answered, total, container) {
-        const countElement = container.querySelector('#answered-count');
-        countElement.textContent = `Results based on ${answered} of ${total} questions answered.`;
-    }
-    
     // --- MAIN EXECUTION ROUTER ---
     function run() {
         initializeTheme();
         initializeQOLFeatures();
 
         const path = window.location.pathname;
-        if (path.endsWith('/') || path.endsWith('index.html')) {
+        const pageName = path.substring(path.lastIndexOf('/') + 1);
+
+        if (pageName === '' || pageName === 'index.html') {
             handleIndexPage();
-        } else if (path.endsWith('health.html')) {
+        } else if (pageName === 'health.html') {
             handleHealthPage();
-        } else if (path.endsWith('cognitive.html')) {
+        } else if (pageName === 'cognitive.html') {
             handleCognitivePage();
-        } else if (path.endsWith('questionnaire.html')) {
+        } else if (pageName === 'questionnaire.html') {
             handleQuestionnairePage();
         }
     }
