@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mental Health Self-Assessment Screeners</title>
-    <!-- Google Fonts -->
+    <title>Self-Assessment Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js for Infographics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container fade-in">
         <header>
-            <h1>Mental Health Self-Assessment Screeners</h1>
-            <!-- Theme Toggle -->
+            <h1>Self-Assessment Hub</h1>
             <div class="theme-toggle-container">
                 <label for="theme-toggle" class="theme-toggle-label">Theme</label>
                 <button id="theme-toggle" class="theme-toggle" title="Toggle dark/light theme">
@@ -26,56 +21,25 @@
                 </button>
             </div>
         </header>
-
-        <div class="disclaimer-box critical">
-            <div class="disclaimer-header">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>
-                <h2>CRITICAL WARNING: READ BEFORE PROCEEDING</h2>
-            </div>
-            <p>
-                This website provides unofficial self-assessment questionnaires. It is <strong>NOT a diagnostic tool</strong>. The results are not a medical diagnosis. They are an estimation of likelihood based on your self-reported answers.
-            </p>
-            <p>
-                A high percentage does <strong>NOT</strong> mean you have a disorder. A low percentage does <strong>NOT</strong> mean you do not have a disorder.
-            </p>
-            <p>
-                <strong>The sole purpose of this tool is to help you decide if you should seek a professional consultation.</strong> If your score is high, or if you are concerned about your mental health for any reason, please speak to a qualified doctor, psychiatrist, or therapist. Only a trained professional can provide an accurate diagnosis and treatment plan.
-            </p>
-            <p><strong>If you are in crisis, please call your local emergency number or a crisis hotline. This website is not monitored and cannot provide help.</strong></p>
-        </div>
-
-        <main>
-            <div id="user-context-gate">
-                <h2>First, tell us about yourself</h2>
-                <p>This information helps us provide the most relevant questionnaires. All fields are optional and are for your context only.</p>
-                
-                <div class="context-group">
-                    <label for="age-group">I am a...</label>
-                    <select id="age-group" required>
-                        <option value="" disabled selected>Select an age group...</option>
-                        <option value="teen">Teen (13-17)</option>
-                        <option value="adult">Adult (18+)</option>
-                    </select>
-                </div>
-
-                <div class="context-group">
-                    <label for="gender">Gender Identity (Optional)</label>
-                    <input type="text" id="gender" placeholder="e.g., Woman, Man, Non-binary">
-                    <small>This information is for your personal context and does not affect your scores.</small>
-                </div>
-                
-                <button id="proceed-button" class="submit-btn">Proceed to Questionnaires →</button>
-            </div>
-
-            <div id="questionnaire-selection">
-                <h2>Available Questionnaires</h2>
-                <p>Choose a questionnaire below to begin. Remember the purpose is self-reflection, not self-diagnosis.</p>
-                <div id="questionnaire-list">
-                    <!-- Links will be dynamically generated here -->
-                </div>
+        
+        <main class="portal-main">
+            <p class="portal-intro">Welcome. Please choose a category to begin your self-assessment journey.</p>
+            <div class="portal-grid">
+                <a href="health.html" class="portal-link">
+                    <div class="portal-icon">🧠</div>
+                    <h2>Mental Health Screeners</h2>
+                    <p>Unofficial questionnaires to help you reflect on your mental health and decide if you should speak to a professional. <strong>These are not diagnostic tools.</strong></p>
+                    <span class="portal-btn">Go to Health Screeners →</span>
+                </a>
+                <a href="cognitive.html" class="portal-link">
+                    <div class="portal-icon">🧩</div>
+                    <h2>Cognitive & Personality Quizzes</h2>
+                    <p>Engaging puzzles and personality-style quizzes for self-reflection and entertainment. <strong>These are not scientific measurements of intelligence or personality.</strong></p>
+                    <span class="portal-btn">Go to Cognitive Quizzes →</span>
+                </a>
             </div>
         </main>
-
+        
         <footer>
             <p>This is an informational tool and does not provide medical advice. Consult a professional for any health concerns.</p>
         </footer>
