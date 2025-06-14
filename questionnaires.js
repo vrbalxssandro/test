@@ -18,6 +18,7 @@ const healthQuestionnaires = {
         title: 'Comprehensive Symptom Mapper',
         description: 'This is a curated screener designed to identify potential areas of concern across a broad range of conditions. It is not exhaustive. Its purpose is to highlight patterns and symptom overlaps that you can discuss with a professional.',
         isHealth: true,
+        type: 'radar-chart',
         questions: [
             { text: "I feel a persistent sense of sadness, emptiness, or hopelessness.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'bpd', 'bipolar-spectrum'], axis: 'Mood & Emotion' },
             { text: "I have lost interest or pleasure in activities I once found enjoyable.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'ptsd'], axis: 'Mood & Emotion' },
