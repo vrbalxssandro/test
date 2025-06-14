@@ -250,7 +250,7 @@ const questionnaires = {
             { text: "I have had distinct periods where I felt unusually 'up,' high, euphoric, or extremely irritable for several days." },
             { text: "During these 'up' periods, I needed significantly less sleep but still felt full of energy." },
             { text: "During these periods, my thoughts raced, and I talked much faster and more than usual." },
- V           { text: "I have felt unusually self-important, grandiose, or talented during these times." },
+            { text: "I have felt unusually self-important, grandiose, or talented during these times." },
             { text: "I was easily distracted, with my attention jumping from one thing to another." },
             { text: "I became intensely involved in multiple projects or goal-directed activities at once (at work, school, or socially)." },
             { text: "I have engaged in impulsive, high-risk behaviors I normally wouldn't, such as spending sprees, reckless driving, or risky sexual encounters." },
@@ -286,7 +286,6 @@ const questionnaires = {
             { text: "I avoid situations or procrastinate on tasks because they trigger my anxiety." },
             { text: "The worry feels like a 'background noise' that is always on." },
             { text: "I worry about worrying itself." },
-
             { text: "I have a very low tolerance for ambiguity or uncertainty." },
             { text: "I spend a lot of time double-checking things." },
             { text: "My worry feels disproportionate to the actual threat of the situation." },
