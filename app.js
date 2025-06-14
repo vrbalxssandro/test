@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const proceedButton = document.getElementById('proceed-button');
         if (!proceedButton) return;
 
-        // Ensure initial state is correct
         document.getElementById('questionnaire-selection').classList.add('hidden');
         document.getElementById('user-context-gate').classList.remove('hidden');
 
@@ -65,8 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             document.getElementById('user-context-gate').classList.add('hidden');
-            document.getElementById('questionnaire-selection').classList.remove('hidden');
-            document.getElementById('questionnaire-selection').style.display = 'block';
+            const selectionDiv = document.getElementById('questionnaire-selection');
+            selectionDiv.classList.remove('hidden');
+            selectionDiv.style.display = 'block';
             populateQuestionnaires(ageGroup);
         });
     }
@@ -84,13 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const isAdultVersion = key === 'adhd-adult' || key === 'mdd';
 
             if (ageGroup === 'teen') {
-                if (!adultOnlyKeys.has(key) && !isAdultVersion) {
-                    isApplicable = true;
-                }
+                if (!adultOnlyKeys.has(key) && !isAdultVersion) isApplicable = true;
             } else if (ageGroup === 'adult') {
-                if (!teenOnlyKeys.has(key)) {
-                    isApplicable = true;
-                }
+                if (!teenOnlyKeys.has(key)) isApplicable = true;
             }
 
             if (isApplicable) {
@@ -127,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const resultsContainer = document.getElementById('results-container');
         const copyBtn = document.getElementById('copy-results-btn');
         
-        // Set initial visibility
         resultsContainer.style.display = 'none';
         progressContainer.style.display = 'block';
 
@@ -140,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         questionnaireForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            // ... (submission logic) ...
             const totalQuestions = questionnaire.questions.length;
             const answeredQuestions = questionnaireForm.querySelectorAll('input[type="radio"]:checked').length;
             if (answeredQuestions < totalQuestions) {
@@ -158,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
             questionnaireForm.classList.add('hidden');
             progressContainer.classList.add('hidden');
             resultsContainer.style.display = 'block';
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'instant' });
         });
         
         if (copyBtn) {
@@ -171,8 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
         questionnaire.questions.forEach((question, index) => {
             const questionItem = document.createElement('div');
             questionItem.className = 'question-item';
+            questionItem.style.animationDelay = `${index * 50}ms`;
 
             if (question.mapsTo) { questionItem.dataset.mapsTo = JSON.stringify(question.mapsTo); }
+            if (question.axis) { questionItem.dataset.axis = question.axis; }
             if (question.domains) { questionItem.dataset.domains = JSON.stringify(question.domains); }
             if (question.type === 'safety') {
                 questionItem.dataset.type = 'safety';
@@ -196,14 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
             options.forEach(option => {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
-                radio.type = 'radio';
-                radio.name = `question-${index}`;
-                radio.value = option.value;
-                radio.required = true;
+                radio.type = 'radio'; radio.name = `question-${index}`; radio.value = option.value; radio.required = true;
                 const span = document.createElement('span');
                 span.textContent = option.text;
-                label.appendChild(radio);
-                label.appendChild(span);
+                label.appendChild(radio); label.appendChild(span);
                 answerOptions.appendChild(label);
             });
             questionItem.appendChild(answerOptions);
@@ -220,24 +214,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- RESULTS CALCULATION & DISPLAY ---
     function getInterpretationText(percentage) {
-        if (percentage < 35) {
-            return 'Your score is in the low range. This suggests you experience these traits less frequently than what is typical for this condition. However, if you are still concerned, professional advice is always valuable.';
-        } else if (percentage < 65) {
-            return 'Your score is in the moderate range. This suggests you experience a number of traits associated with this condition. It may be beneficial to explore this further with a mental health professional.';
-        } else {
-            return 'Your score is in the high range. This indicates a strong correlation with the traits of this condition. It is highly recommended that you share these results with a doctor or mental health professional for a formal evaluation.';
-        }
+        if (percentage < 35) { return 'Your score is in the low range. This suggests you experience these traits less frequently than what is typical for this condition. However, if you are still concerned, professional advice is always valuable.';
+        } else if (percentage < 65) { return 'Your score is in the moderate range. This suggests you experience a number of traits associated with this condition. It may be beneficial to explore this further with a mental health professional.';
+        } else { return 'Your score is in the high range. This indicates a strong correlation with the traits of this condition. It is highly recommended that you share these results with a doctor or mental health professional for a formal evaluation.'; }
     }
     
     function calculateSingleResult(questionnaire, form, container) {
-        const scoreDisplay = container.querySelector('#score-display');
-        const spectrumProfileContainer = container.querySelector('#spectrum-profile-container');
+        const gaugeContainer = container.querySelector('#gauge-container');
         const resultInterpretation = container.querySelector('#result-interpretation');
 
         const formData = new FormData(form);
-        let totalScore = 0;
-        let scorableQuestions = 0;
-
+        let totalScore = 0, scorableQuestions = 0;
         questionnaire.questions.forEach((q, index) => {
              if (q.type !== 'safety') {
                  totalScore += parseInt(formData.get(`question-${index}`), 10);
@@ -249,39 +236,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxScore = scorableQuestions * 5;
         const percentage = scorableQuestions > 0 ? ((totalScore - minScore) / (maxScore - minScore)) * 100 : 0;
         
-        scoreDisplay.innerHTML = `<div class="single-score">${percentage.toFixed(0)}%</div>`;
+        gaugeContainer.innerHTML = `
+            <div class="gauge-background"></div>
+            <div class="gauge-mask"></div>
+            <div class="gauge-center"></div>
+            <div class="gauge-needle" style="--gauge-rotation: -90deg;"></div>
+            <div class="gauge-value">${percentage.toFixed(0)}%</div>
+        `;
+        gaugeContainer.classList.remove('hidden');
+
+        // Animate the needle
+        setTimeout(() => {
+            const rotation = (percentage / 100) * 180 - 90;
+            gaugeContainer.querySelector('.gauge-needle').style.setProperty('--gauge-rotation', `${rotation}deg`);
+        }, 100);
+
         resultInterpretation.textContent = getInterpretationText(percentage);
-        spectrumProfileContainer.innerHTML = '';
     }
 
     function calculateTraitProfile(questionnaire, form, container) {
-        const scoreDisplay = container.querySelector('#score-display');
-        const spectrumProfileContainer = container.querySelector('#spectrum-profile-container');
+        const barChartContainer = container.querySelector('#bar-chart-container');
         const resultInterpretation = container.querySelector('#result-interpretation');
-
-        const domainScores = {};
-        const formData = new FormData(form);
         
-        for(const domainKey in questionnaire.domains){
-            domainScores[domainKey] = { score: 0, count: 0, title: questionnaire.domains[domainKey] };
-        }
-
+        // ... (calculation logic is the same) ...
+        const domainScores = {}; const formData = new FormData(form);
+        for(const domainKey in questionnaire.domains){ domainScores[domainKey] = { score: 0, count: 0, title: questionnaire.domains[domainKey] }; }
         form.querySelectorAll('.question-item').forEach((el, index) => {
             if (el.dataset.domains) {
                 const domains = JSON.parse(el.dataset.domains);
                 const value = parseInt(formData.get(`question-${index}`), 10);
                 domains.forEach(dKey => {
-                    if(domainScores[dKey]){
-                        domainScores[dKey].score += value;
-                        domainScores[dKey].count++;
-                    }
+                    if(domainScores[dKey]){ domainScores[dKey].score += value; domainScores[dKey].count++; }
                 });
             }
         });
         
-        spectrumProfileContainer.innerHTML = '<h3>Your Trait Profile</h3><div class="trait-profile-grid"></div>';
-        const grid = spectrumProfileContainer.querySelector('.trait-profile-grid');
-        
+        barChartContainer.innerHTML = '<h3>Your Trait Profile</h3>';
+        barChartContainer.classList.remove('hidden');
+
+        let delay = 0;
         for(const key in domainScores){
             const data = domainScores[key];
             const minScore = data.count * 1;
@@ -290,75 +283,84 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const resultItem = document.createElement('div');
             resultItem.className = 'result-item';
+            resultItem.style.animationDelay = `${delay}ms`;
             resultItem.innerHTML = `
                 <div class="result-title">${data.title}</div>
                 <div class="result-bar-container"><div class="result-bar" style="width: ${percentage.toFixed(1)}%;"></div></div>
                 <div class="result-percentage">${percentage.toFixed(0)}%</div>
             `;
-            grid.appendChild(resultItem);
+            barChartContainer.appendChild(resultItem);
+            delay += 100;
         }
 
-        scoreDisplay.innerHTML = `<div class="single-score">Profile Generated</div>`;
         resultInterpretation.innerHTML = `This profile shows how your answers align with common trait clusters. <strong>This is not a diagnosis or a "type" of Autism.</strong> It is a map of your personal experiences. A high percentage in one area simply highlights that you reported more traits in that domain. Use this profile to better understand your own patterns and to facilitate a more detailed conversation with a professional.`;
     }
 
     function calculateSymptomMapResults(questionnaire, form, container) {
-        const scoreDisplay = container.querySelector('#score-display');
-        const spectrumProfileContainer = container.querySelector('#spectrum-profile-container');
+        const radarContainer = container.querySelector('#radar-chart-container');
         const resultInterpretation = container.querySelector('#result-interpretation');
         
-        const results = {};
-        const formData = new FormData(form);
-
-        for (const key in questionnaires) {
-            if (key !== 'all-in-one') {
-                results[key] = { score: 0, count: 0, title: questionnaires[key].title };
-            }
-        }
-
-        form.querySelectorAll('.question-item').forEach((el, index) => {
-            if (el.dataset.type !== 'safety' && el.dataset.mapsTo) {
-                const associatedDisorders = JSON.parse(el.dataset.mapsTo);
+        const axisScores = {}; const formData = new FormData(form);
+        questionnaire.questions.forEach((q, index) => {
+            if (q.axis) {
+                if (!axisScores[q.axis]) { axisScores[q.axis] = { score: 0, count: 0 }; }
                 const value = parseInt(formData.get(`question-${index}`), 10);
-                associatedDisorders.forEach(disorderKey => {
-                    if (results[disorderKey]) {
-                        results[disorderKey].score += value;
-                        results[disorderKey].count++;
-                    }
-                });
+                axisScores[q.axis].score += value;
+                axisScores[q.axis].count++;
             }
-        });
-
-        scoreDisplay.innerHTML = '';
-        const resultsGrid = document.createElement('div');
-        resultsGrid.className = 'results-grid';
-
-        const sortedResults = Object.entries(results)
-            .filter(([key, data]) => data.count > 0)
-            .map(([key, data]) => {
-                const minScore = data.count * 1;
-                const maxScore = data.count * 5;
-                const percentage = ((data.score - minScore) / (maxScore - minScore)) * 100;
-                return { key, title: data.title, percentage };
-            })
-            .sort((a, b) => b.percentage - a.percentage);
-
-        sortedResults.forEach(res => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'result-item';
-            resultItem.innerHTML = `
-                <div class="result-title">${res.title}</div>
-                <div class="result-bar-container"><div class="result-bar" style="width: ${res.percentage.toFixed(1)}%;"></div></div>
-                <div class="result-percentage">${res.percentage.toFixed(0)}%</div>
-            `;
-            resultsGrid.appendChild(resultItem);
         });
         
-        scoreDisplay.appendChild(resultsGrid);
-        spectrumProfileContainer.innerHTML = '';
+        const labels = Object.keys(axisScores);
+        const data = labels.map(label => {
+            const axis = axisScores[label];
+            const minScore = axis.count * 1;
+            const maxScore = axis.count * 5;
+            return axis.count > 0 ? ((axis.score - minScore) / (maxScore - minScore)) * 100 : 0;
+        });
+
+        radarContainer.classList.remove('hidden');
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Symptom Domain Likelihood',
+                    data: data,
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    r: {
+                        angleLines: { color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
+                        grid: { color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
+                        pointLabels: { font: { size: 12 }, color: isDark ? '#f3f4f6' : '#1f2937' },
+                        ticks: {
+                            backdropColor: 'transparent',
+                            color: isDark ? '#9ca3af' : '#6b7280',
+                            stepSize: 25,
+                            max: 100,
+                            min: 0
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
         resultInterpretation.innerHTML = `
             <strong>Understanding Your Symptom Map:</strong><br>
-            This map shows the likelihood of traits associated with different conditions. <strong>Symptom overlap is very common and normal.</strong> A high score in multiple areas does not mean you have all those conditions. This tool simply highlights patterns. <strong>Use this map as a detailed starting point for a conversation with a qualified professional,</strong> who is the only one who can provide an accurate diagnosis.
+            This map visualizes your responses across different domains of mental health. A higher score on an axis (closer to the edge) suggests you reported more traits in that area. <strong>Symptom overlap is very common and normal.</strong> This is a pattern-finding tool, not a diagnostic one. <strong>Use this map as a detailed starting point for a conversation with a qualified professional.</strong>
         `;
     }
     
@@ -366,15 +368,26 @@ document.addEventListener('DOMContentLoaded', () => {
         let summaryText = `Mental Health Screener Results for: ${questionnaire.title}\n`;
         summaryText += "========================================\n\n";
 
-        if (qId === 'all-in-one' || questionnaire.trait_profile) {
+        if (qId === 'all-in-one') {
+            summaryText += "Symptom Domain Scores:\n";
+            const canvas = document.getElementById('radarChart');
+            const chartInstance = Chart.getChart(canvas);
+            if(chartInstance) {
+                chartInstance.data.labels.forEach((label, index) => {
+                    const score = chartInstance.data.datasets[0].data[index];
+                    summaryText += `- ${label}: ${score.toFixed(0)}%\n`;
+                });
+            }
+        } else if (questionnaire.trait_profile) {
+            summaryText += "Trait Profile Scores:\n";
             const resultItems = container.querySelectorAll('.result-item');
             resultItems.forEach(item => {
                 const title = item.querySelector('.result-title').textContent.trim();
                 const percentage = item.querySelector('.result-percentage').textContent.trim();
-                summaryText += `${title}: ${percentage}\n`;
+                summaryText += `- ${title}: ${percentage}\n`;
             });
         } else {
-            const score = container.querySelector('.single-score').textContent.trim();
+            const score = container.querySelector('.gauge-value').textContent.trim();
             summaryText += `Likelihood Score: ${score}\n`;
         }
 
@@ -385,8 +398,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const copyBtn = document.getElementById('copy-results-btn');
             const originalText = copyBtn.querySelector('span').textContent;
             copyBtn.querySelector('span').textContent = 'Copied to Clipboard!';
+            copyBtn.disabled = true;
             setTimeout(() => {
                 copyBtn.querySelector('span').textContent = originalText;
+                copyBtn.disabled = false;
             }, 2000);
         }).catch(err => {
             console.error('Failed to copy results: ', err);
