@@ -69,24 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('user-context-gate').classList.add('hidden');
             const selectionDiv = document.getElementById('questionnaire-selection');
             selectionDiv.style.display = 'block';
-            populateQuestionnaireList(ageGroup, healthQuestionnaires, 'health');
+            populateQuestionnaireList(ageGroup, healthQuestionnaires);
         });
     }
     
     function handleCognitivePage() {
         const selectionDiv = document.getElementById('questionnaire-selection');
         selectionDiv.style.display = 'block';
-        populateQuestionnaireList(null, cognitiveQuizzes, 'cognitive');
+        populateQuestionnaireList(null, cognitiveQuizzes);
     }
     
-    function populateQuestionnaireList(ageGroup, source, type) {
+    function populateQuestionnaireList(ageGroup, source) {
         const listContainer = document.getElementById('questionnaire-list');
         if (!listContainer) return;
         listContainer.innerHTML = '';
         
         for (const key in source) {
             let isApplicable = true;
-            if (type === 'health') {
+            if (source[key].isHealth) { // Check if it's a health screener to apply age logic
                 const adultOnlyKeys = new Set(['pdd-dysthymia', 'bipolar-spectrum', 'dsps']);
                 const teenOnlyKeys = new Set(['adhd-teen', 'mdd-teen']);
                 const isAdultVersion = key === 'adhd-adult' || key === 'mdd';
@@ -162,6 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 calculateLearningStyle(questionnaire, questionnaireForm, resultsContainer);
             } else if (questionnaire.type === 'scored-quiz') {
                 calculateScoredQuiz(questionnaire, questionnaireForm, resultsContainer);
+            } else if (questionnaire.type === 'bell-curve-quiz') {
+                calculateBellCurveQuiz(questionnaire, questionnaireForm, resultsContainer);
             } else if (questionnaire.type === 'trait-profile') {
                 calculateTraitProfile(questionnaire, questionnaireForm, resultsContainer);
             } else if (questionnaire.type === 'radar-chart') {
@@ -236,6 +238,12 @@ document.addEventListener('DOMContentLoaded', () => {
         countElement.textContent = `Results based on ${answered} of ${total} questions answered.`;
     }
     
+    function getInterpretationText(percentage) {
+        if (percentage < 35) { return 'Your score is in the low range. This suggests you experience these traits less frequently than what is typical for this condition. However, if you are still concerned, professional advice is always valuable.';
+        } else if (percentage < 65) { return 'Your score is in the moderate range. This suggests you experience a number of traits associated with this condition. It may be beneficial to explore this further with a mental health professional.';
+        } else { return 'Your score is in the high range. This indicates a strong correlation with the traits of this condition. It is highly recommended that you share these results with a doctor or mental health professional for a formal evaluation.'; }
+    }
+    
     function calculateSingleResult(questionnaire, form, container) {
         const gaugeContainer = container.querySelector('#gauge-container');
         const resultInterpretation = container.querySelector('#result-interpretation');
@@ -274,22 +282,25 @@ document.addEventListener('DOMContentLoaded', () => {
         for(const domainKey in questionnaire.domains){ domainScores[domainKey] = { score: 0, count: 0, title: questionnaire.domains[domainKey] }; }
         
         let answeredCount = 0;
-        form.querySelectorAll('.question-item').forEach((el, index) => {
-            if (formData.has(`question-${index}`)) {
+        questionnaire.questions.forEach((q, index) => {
+            const fieldName = `question-${index}`;
+            if (formData.has(fieldName)) {
                 answeredCount++;
-                if (el.dataset.domains) {
-                    const domains = JSON.parse(el.dataset.domains);
-                    const value = parseInt(formData.get(`question-${index}`), 10);
-                    domains.forEach(dKey => {
-                        if(domainScores[dKey]){ domainScores[dKey].score += value; domainScores[dKey].count++; }
-                    });
-                }
+                const value = parseInt(formData.get(fieldName), 10);
+                const scoreValue = q.score === 'reverse' ? (6 - value) : value; // Reverse score for reverse-coded items
+                const domains = q.domains;
+                domains.forEach(dKey => {
+                    if (domainScores[dKey]) {
+                        domainScores[dKey].score += scoreValue;
+                        domainScores[dKey].count++;
+                    }
+                });
             }
         });
 
         setAnsweredCount(answeredCount, questionnaire.questions.length, container);
         
-        barChartContainer.innerHTML = '<h3>Your Trait Profile</h3>';
+        barChartContainer.innerHTML = '<h3>Your Personality Trait Profile</h3>';
         barChartContainer.classList.remove('hidden');
 
         let delay = 0;
@@ -306,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             delay += 100;
         }
 
-        resultInterpretation.innerHTML = `This profile shows how your answers align with common trait clusters. <strong>This is not a diagnosis or a "type" of Autism.</strong> It is a map of your personal experiences. Use this profile to better understand your own patterns and to facilitate a more detailed conversation with a professional.`;
+        resultInterpretation.innerHTML = `This profile shows your traits based on the Five-Factor Model. A high score indicates a strong presence of that trait, while a low score indicates its opposite. There are no "good" or "bad" scores, just different ways of being.`;
     }
 
     function calculateSymptomMapResults(questionnaire, form, container) {
@@ -395,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultsDiv.innerHTML = `
             <h3>Your Primary Learning Style is: ${descriptions[primaryStyle].name}</h3>
-            <p>${descriptions[primaryStyle].desc}</p>
+            <p class="style-desc">${descriptions[primaryStyle].desc}</p>
         `;
         resultsDiv.classList.remove('hidden');
         resultInterpretation.textContent = "This result is based on your self-reported preferences. Most people use a mix of styles, but this highlights what might be most effective for you.";
@@ -427,6 +438,72 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         resultsDiv.classList.remove('hidden');
         resultInterpretation.textContent = "This was just for fun! This score is not a reflection of your overall intelligence or abilities.";
+    }
+
+    function calculateBellCurveQuiz(questionnaire, form, container) {
+        const resultsDiv = container.querySelector('#bell-curve-container');
+        const resultInterpretation = container.querySelector('#result-interpretation');
+        
+        const formData = new FormData(form);
+        let correctAnswers = 0;
+        let answeredCount = 0;
+
+        questionnaire.questions.forEach((q, index) => {
+            const fieldName = `question-${index}`;
+            if (formData.has(fieldName)) {
+                answeredCount++;
+                if (formData.get(fieldName) === q.answer) {
+                    correctAnswers++;
+                }
+            }
+        });
+
+        setAnsweredCount(answeredCount, questionnaire.questions.length, container);
+
+        // Standard Deviation = 3, Mean = 12.5 (half of 25 questions)
+        const mean = questionnaire.questions.length / 2;
+        const stdDev = 3;
+        const zScore = answeredCount > 0 ? (correctAnswers - mean) / stdDev : 0;
+        const iqScore = Math.round(100 + zScore * 15);
+        
+        // Clamp score between a reasonable range
+        const finalScore = Math.max(55, Math.min(145, iqScore));
+        const percentage = ((finalScore - 55) / (145 - 55)) * 100;
+        
+        resultsDiv.innerHTML = `
+            <h3>Your Quotient Score: ${finalScore}</h3>
+            <div class="bell-curve-wrapper">
+                <svg class="bell-curve-svg" viewBox="0 0 200 110">
+                    <path class="bell-curve-path" d="M 10 100 C 40 100, 40 10, 100 10 C 160 10, 160 100, 190 100"></path>
+                    <path class="bell-curve-line" d="M 10 100 C 40 100, 40 10, 100 10 C 160 10, 160 100, 190 100"></path>
+                    <line class="bell-curve-marker" x1="0" y1="20" x2="0" y2="100" style="transform: translateX(${10 + (percentage / 100 * 180)}px);"></line>
+                </svg>
+            </div>
+        `;
+        resultsDiv.classList.remove('hidden');
+        resultInterpretation.textContent = "This score is a reflection of performance on this specific test, standardized to a mean of 100. It is NOT a clinical IQ score.";
+    }
+
+    function copyResultsToClipboard(qId, questionnaire, container) {
+        let summaryText = `Quiz Results for: ${questionnaire.title}\n`;
+        const answeredCountText = container.querySelector('#answered-count').textContent;
+        summaryText += `${answeredCountText}\n`;
+        summaryText += "========================================\n\n";
+
+        if (questionnaire.type === 'radar-chart') { /* ... */ }
+        else if (questionnaire.type === 'trait-profile') { /* ... */ }
+        else if (questionnaire.type === 'learning-style') { /* ... */ }
+        else if (questionnaire.type === 'scored-quiz') { /* ... */ }
+        else if (questionnaire.type === 'bell-curve-quiz') { /* ... */ }
+        else {
+            const score = container.querySelector('.gauge-value').textContent.trim();
+            summaryText += `Likelihood Score: ${score}\n`;
+        }
+
+        summaryText += "\n========================================\n";
+        summaryText += "IMPORTANT: These results are from an unofficial online quiz. Please see the disclaimer on the website for more information.";
+
+        navigator.clipboard.writeText(summaryText).then(() => { /* ... */ });
     }
 
     // --- MAIN EXECUTION ROUTER ---
