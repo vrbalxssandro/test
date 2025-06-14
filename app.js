@@ -123,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!questionnaire) {
             if (questionnaireTitle) questionnaireTitle.textContent = "Questionnaire Not Found";
-            if (questionnaireDescription) questionnaireDescription.textContent = "Please select a valid questionnaire from the homepage.";
             return;
         }
         
@@ -141,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const questionsContainer = document.getElementById('questions-container');
         const resultsContainer = document.getElementById('results-container');
         const copyBtn = document.getElementById('copy-results-btn');
+        const showAnswersBtn = document.getElementById('show-answers-btn');
         
         resultsContainer.style.display = 'none';
         progressContainer.style.display = 'block';
@@ -182,6 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (copyBtn) {
             copyBtn.addEventListener('click', () => copyResultsToClipboard(qId, questionnaire, resultsContainer));
+        }
+        
+        if (showAnswersBtn) {
+            showAnswersBtn.addEventListener('click', () => showCorrectAnswers(questionnaire, questionnaireForm, questionsContainer));
         }
     }
     
@@ -287,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (formData.has(fieldName)) {
                 answeredCount++;
                 const value = parseInt(formData.get(fieldName), 10);
-                const scoreValue = q.score === 'reverse' ? (6 - value) : value; // Reverse score for reverse-coded items
+                const scoreValue = q.score === 'reverse' ? (6 - value) : value;
                 const domains = q.domains;
                 domains.forEach(dKey => {
                     if (domainScores[dKey]) {
@@ -438,6 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         resultsDiv.classList.remove('hidden');
         resultInterpretation.textContent = "This was just for fun! This score is not a reflection of your overall intelligence or abilities.";
+        document.getElementById('show-answers-btn').classList.remove('hidden');
     }
 
     function calculateBellCurveQuiz(questionnaire, form, container) {
@@ -460,13 +465,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setAnsweredCount(answeredCount, questionnaire.questions.length, container);
 
-        // Standard Deviation = 3, Mean = 12.5 (half of 25 questions)
         const mean = questionnaire.questions.length / 2;
-        const stdDev = 3;
+        const stdDev = 4; // Use a wider std dev for a friendlier curve
         const zScore = answeredCount > 0 ? (correctAnswers - mean) / stdDev : 0;
         const iqScore = Math.round(100 + zScore * 15);
         
-        // Clamp score between a reasonable range
         const finalScore = Math.max(55, Math.min(145, iqScore));
         const percentage = ((finalScore - 55) / (145 - 55)) * 100;
         
@@ -476,12 +479,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg class="bell-curve-svg" viewBox="0 0 200 110">
                     <path class="bell-curve-path" d="M 10 100 C 40 100, 40 10, 100 10 C 160 10, 160 100, 190 100"></path>
                     <path class="bell-curve-line" d="M 10 100 C 40 100, 40 10, 100 10 C 160 10, 160 100, 190 100"></path>
-                    <line class="bell-curve-marker" x1="0" y1="20" x2="0" y2="100" style="transform: translateX(${10 + (percentage / 100 * 180)}px);"></line>
+                    <line class="bell-curve-marker" x1="0" y1="20" x2="0" y2="100" style="transform: translateX(0px);"></line>
                 </svg>
             </div>
         `;
         resultsDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+            resultsDiv.querySelector('.bell-curve-marker').style.transform = `translateX(${10 + (percentage / 100 * 180)}px)`;
+        }, 100);
+
         resultInterpretation.textContent = "This score is a reflection of performance on this specific test, standardized to a mean of 100. It is NOT a clinical IQ score.";
+        document.getElementById('show-answers-btn').classList.remove('hidden');
+    }
+
+    function showCorrectAnswers(questionnaire, form, container) {
+        const formData = new FormData(form);
+        questionnaire.questions.forEach((q, index) => {
+            const fieldName = `question-${index}`;
+            const userAnswer = formData.get(fieldName);
+            const questionItem = container.querySelectorAll('.question-item')[index];
+            const answerOptionsDiv = questionItem.querySelector('.answer-options');
+            
+            answerOptionsDiv.classList.add('reveal');
+            
+            questionItem.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.disabled = true;
+                if (radio.value === q.answer) {
+                    radio.parentElement.classList.add('correct');
+                } else if (radio.value === userAnswer && userAnswer !== q.answer) {
+                    radio.parentElement.classList.add('incorrect');
+                }
+            });
+
+            if (userAnswer !== q.answer) {
+                let correctAnswerText = questionItem.querySelector('.correct-answer-text');
+                if (!correctAnswerText) {
+                    correctAnswerText = document.createElement('p');
+                    correctAnswerText.className = 'correct-answer-text';
+                    questionItem.appendChild(correctAnswerText);
+                }
+                correctAnswerText.textContent = `Correct Answer: ${q.answer}`;
+            }
+        });
+        document.getElementById('show-answers-btn').classList.add('hidden');
+        document.getElementById('questionnaire-form').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function copyResultsToClipboard(qId, questionnaire, container) {
@@ -490,12 +533,30 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryText += `${answeredCountText}\n`;
         summaryText += "========================================\n\n";
 
-        if (questionnaire.type === 'radar-chart') { /* ... */ }
-        else if (questionnaire.type === 'trait-profile') { /* ... */ }
-        else if (questionnaire.type === 'learning-style') { /* ... */ }
-        else if (questionnaire.type === 'scored-quiz') { /* ... */ }
-        else if (questionnaire.type === 'bell-curve-quiz') { /* ... */ }
-        else {
+        if (questionnaire.type === 'radar-chart') {
+            summaryText += "Symptom Domain Scores:\n";
+            const canvas = document.getElementById('radarChart');
+            const chartInstance = Chart.getChart(canvas);
+            if(chartInstance) {
+                chartInstance.data.labels.forEach((label, index) => {
+                    const score = chartInstance.data.datasets[0].data[index];
+                    summaryText += `- ${label}: ${score.toFixed(0)}%\n`;
+                });
+            }
+        } else if (questionnaire.type === 'trait-profile') {
+            summaryText += "Trait Profile Scores:\n";
+            container.querySelectorAll('.result-item').forEach(item => {
+                const title = item.querySelector('.result-title').textContent.trim();
+                const percentage = item.querySelector('.result-percentage').textContent.trim();
+                summaryText += `- ${title}: ${percentage}\n`;
+            });
+        } else if (questionnaire.type === 'learning-style') {
+            summaryText += container.querySelector('#learning-style-results').textContent.trim();
+        } else if (questionnaire.type === 'scored-quiz') {
+            summaryText += container.querySelector('#simple-score-results p').textContent.trim();
+        } else if (questionnaire.type === 'bell-curve-quiz') {
+            summaryText += container.querySelector('#bell-curve-container h3').textContent.trim();
+        } else {
             const score = container.querySelector('.gauge-value').textContent.trim();
             summaryText += `Likelihood Score: ${score}\n`;
         }
@@ -503,7 +564,16 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryText += "\n========================================\n";
         summaryText += "IMPORTANT: These results are from an unofficial online quiz. Please see the disclaimer on the website for more information.";
 
-        navigator.clipboard.writeText(summaryText).then(() => { /* ... */ });
+        navigator.clipboard.writeText(summaryText).then(() => {
+            const copyBtn = document.getElementById('copy-results-btn');
+            const originalText = copyBtn.querySelector('span').textContent;
+            copyBtn.querySelector('span').textContent = 'Copied to Clipboard!';
+            copyBtn.disabled = true;
+            setTimeout(() => {
+                copyBtn.querySelector('span').textContent = originalText;
+                copyBtn.disabled = false;
+            }, 2000);
+        });
     }
 
     // --- MAIN EXECUTION ROUTER ---
