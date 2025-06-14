@@ -51,15 +51,11 @@
             <div id="results-container">
                 <h2>Your Results</h2>
                 
-                <!-- This div will hold all result visualizations -->
+                <p id="answered-count" class="answered-count"></p>
+
                 <div id="results-visuals">
-                    <!-- For single result (gauge) -->
                     <div id="gauge-container" class="hidden"></div>
-                    <!-- For Symptom Mapper (radar chart) -->
-                    <div id="radar-chart-container" class="hidden">
-                        <canvas id="radarChart"></canvas>
-                    </div>
-                    <!-- For Bar Charts (all-in-one list, trait profile) -->
+                    <div id="radar-chart-container" class="hidden"><canvas id="radarChart"></canvas></div>
                     <div id="bar-chart-container" class="hidden"></div>
                 </div>
 
