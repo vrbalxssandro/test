@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mental Health Self-Assessment Screeners</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +16,10 @@
         </header>
 
         <div class="disclaimer-box critical">
-            <h2><⚠️> CRITICAL WARNING: READ BEFORE PROCEEDING <⚠️></h2>
+            <div class="disclaimer-header">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>
+                <h2>CRITICAL WARNING: READ BEFORE PROCEEDING</h2>
+            </div>
             <p>
                 This website provides unofficial self-assessment questionnaires. It is <strong>NOT a diagnostic tool</strong>. The results are not a medical diagnosis. They are an estimation of likelihood based on your self-reported answers.
             </p>
@@ -74,7 +80,6 @@
             
             document.getElementById('user-context-gate').classList.add('hidden');
             document.getElementById('questionnaire-selection').classList.remove('hidden');
-
             populateQuestionnaires(ageGroup);
         });
 
@@ -82,19 +87,33 @@
             const listContainer = document.getElementById('questionnaire-list');
             listContainer.innerHTML = ''; // Clear existing links
             
-            // Define which questionnaires are available for each age group
-            const teenQuestionnaires = ['all-in-one', 'adhd-teen', 'mdd-teen', 'autism-spectrum', 'social-anxiety', 'gad', 'ocd', 'bpd', 'avpd', 'insomnia', 'arfid', 'ptsd', 'pd-traits'];
-            const adultQuestionnaires = ['all-in-one', 'adhd-adult', 'mdd', 'autism-spectrum', 'pdd-dysthymia', 'social-anxiety', 'gad', 'ocd', 'bipolar-spectrum', 'bpd', 'avpd', 'insomnia', 'arfid', 'dsps', 'ptsd', 'pd-traits'];
+            const adultOnlyKeys = new Set(['pdd-dysthymia', 'bipolar-spectrum', 'dsps']);
+            const teenOnlyKeys = new Set(['adhd-teen', 'mdd-teen']);
 
-            const applicableKeys = ageGroup === 'teen' ? teenQuestionnaires : adultQuestionnaires;
+            for (const key in questionnaires) {
+                let isApplicable = false;
+                if (ageGroup === 'teen') {
+                    // Show if not an adult-only key
+                    if (!adultOnlyKeys.has(key)) {
+                        isApplicable = true;
+                    }
+                    // But ensure adult-specific versions are hidden
+                    if (key.includes('-adult')) {
+                        isApplicable = false;
+                    }
+                } else if (ageGroup === 'adult') {
+                    // Show if not a teen-only key
+                    if (!teenOnlyKeys.has(key)) {
+                        isApplicable = true;
+                    }
+                }
 
-            for (const key of applicableKeys) {
-                if (questionnaires[key]) {
+                if (isApplicable) {
                     const questionnaire = questionnaires[key];
                     const link = document.createElement('a');
                     link.href = `questionnaire.html?q=${key}`;
                     link.className = 'questionnaire-link';
-                    link.textContent = questionnaire.title;
+                    link.innerHTML = `<span>${questionnaire.title}</span><span class="arrow">→</span>`;
                     listContainer.appendChild(link);
                 }
             }
