@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questionnaire</title>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,6 +18,11 @@
             <h1 id="questionnaire-title">Loading...</h1>
         </header>
         
+        <!-- Progress Bar -->
+        <div id="progress-container" class="hidden">
+            <div id="progress-bar"></div>
+        </div>
+
         <div class="disclaimer-box">
             <p><strong>Reminder:</strong> This is not a diagnostic tool. Your results are a likelihood score to help you determine if seeking professional advice is a good next step. Answer based on your experiences over the last 6 months to a year, or for your entire life, as appropriate.</p>
         </div>
@@ -33,6 +40,10 @@
                 <h2>Your Results</h2>
                 <div id="score-display"></div>
                 <div id="spectrum-profile-container"></div>
+                <button id="copy-results-btn" class="secondary-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V16.5a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 015 16.5v-13A1.5 1.5 0 016.5 2H7v1.5z"></path><path d="M3 5.5A1.5 1.5 0 014.5 4H8v10.5A1.5 1.5 0 016.5 16h-2A1.5 1.5 0 013 14.5v-9z"></path></svg>
+                    <span>Copy Results Summary</span>
+                </button>
                 <div class="disclaimer-box critical">
                     <div class="disclaimer-header">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>
@@ -47,7 +58,11 @@
             </div>
         </main>
     </div>
-
+    
+    <button id="scroll-top-btn" title="Go to top">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M11.47 2.47a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06l-6.22-6.22V21a.75.75 0 01-1.5 0V4.81l-6.22 6.22a.75.75 0 01-1.06-1.06l7.5-7.5z"></path></svg>
+    </button>
+    
     <script src="questionnaires.js"></script>
     <script src="app.js"></script>
 </body>
