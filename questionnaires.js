@@ -526,21 +526,18 @@ const cognitiveQuizzes = {
         isHealth: false,
         type: 'bell-curve-quiz',
         questions: [
-            // Sequence and Pattern Recognition
             { text: "Which number should come next in the series? 4, 7, 12, 19, 28, ...", options: ["35", "39", "41"], answer: "39" },
             { text: "Which letter comes next in the sequence? J, F, M, A, M, J, ...", options: ["J", "A", "S"], answer: "J" },
             { text: "Find the missing number: 8, 27, 64, ?, 216", options: ["100", "125", "150"], answer: "125" },
             { text: "Which word does not belong? House, Igloo, Bungalow, Office, Hut", options: ["House", "Office", "Hut"], answer: "Office" },
             { text: "Which is the odd one out? A, E, I, O, B", options: ["E", "O", "B"], answer: "B" },
-            { text: "What number comes next in this sequence: 3, 5, 8, 13, 21, ...?", options: ["29", "34", "36"], answer: "34" }, // Fibonacci
-            { text: "Which letter is the odd one out? Z, T, N, E, F", options: ["Z", "T", "E"], answer: "E" }, // Symmetry
-            { text: "What comes next? O, T, T, F, F, S, S, ...", options: ["E", "N", "T"], answer: "E" }, // One, Two, Three...
-            // Analogies
+            { text: "What number comes next in this sequence: 3, 5, 8, 13, 21, ...?", options: ["29", "34", "36"], answer: "34" },
+            { text: "Which letter is the odd one out? Z, T, N, E, F", options: ["Z", "T", "E"], answer: "E" },
+            { text: "What comes next? O, T, T, F, F, S, S, ...", options: ["E", "N", "T"], answer: "E" },
             { text: "Book is to Reading as Fork is to:", options: ["Drawing", "Writing", "Eating"], answer: "Eating" },
             { text: "Oar is to Rowboat as Foot is to:", options: ["Running", "Sneaker", "Kickball"], answer: "Kickball" },
             { text: "Pyramid is to Egypt as Eiffel Tower is to:", options: ["Rome", "Paris", "London"], answer: "Paris" },
             { text: "Tree is to Forest as Soldier is to:", options: ["Gun", "Battle", "Army"], answer: "Army" },
-            // Logical Deduction
             { text: "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?", options: ["10 cents", "5 cents", "1 dollar"], answer: "5 cents" },
             { text: "If you are running in a race and you pass the person in 2nd place, what place are you in now?", options: ["1st place", "2nd place", "3rd place"], answer: "2nd place" },
             { text: "A farmer has 17 sheep, and all but 9 die. How many are left?", options: ["8", "17", "9"], answer: "9" },
@@ -548,7 +545,6 @@ const cognitiveQuizzes = {
             { text: "How many months have 28 days?", options: ["1", "All of them", "2"], answer: "All of them" },
             { text: "What is the next prime number after 13?", options: ["15", "17", "19"], answer: "17" },
             { text: "Mary's father has five daughters: 1. Nana, 2. Nene, 3. Nini, 4. Nono. What is the name of the fifth daughter?", options: ["Nunu", "Mary", "Nona"], answer: "Mary" },
-            // Spatial reasoning
             { text: "If you rotate the letter 'd' 90 degrees clockwise, what new letter does it resemble?", options: ["b", "p", "q"], answer: "p" },
             { text: "Imagine a 3x3 grid (like a tic-tac-toe board). If you start at the top-left square and move one square right, then one square down, then one square left, where are you?", options: ["Center square", "Middle-left square", "Bottom-left square"], answer: "Middle-left square" },
             { text: "You are looking at a cube. If you can see three faces, and none of them are opposite each other, how many faces are hidden from view?", options: ["3", "4", "2"], answer: "3" },
@@ -563,11 +559,8 @@ const cognitiveQuizzes = {
         isHealth: false,
         type: 'trait-profile',
         domains: {
-            'O': 'Openness',
-            'C': 'Conscientiousness',
-            'E': 'Extraversion',
-            'A': 'Agreeableness',
-            'N': 'Neuroticism'
+            'O': 'Openness', 'C': 'Conscientiousness', 'E': 'Extraversion',
+            'A': 'Agreeableness', 'N': 'Neuroticism'
         },
         questions: [
             // Openness
@@ -668,7 +661,7 @@ const cognitiveQuizzes = {
         questions: [
             { text: "If all Zips are Zaps, and some Zaps are Zops, does it mean some Zips are definitely Zops?", options: ["Yes", "No"], answer: "No" },
             { text: "Which is the heaviest? A pound of feathers or a pound of gold?", options: ["Feathers", "Gold", "They weigh the same"], answer: "They weigh the same" },
-            { text: "A man builds a house with four sides, each with a southern exposure. A big bear walks by. What color is the bear?", options: ["Brown", "Black", "White"], answer: "White" }, // It's at the North Pole
+            { text: "A man builds a house with four sides, each with a southern exposure. A big bear walks by. What color is the bear?", options: ["Brown", "Black", "White"], answer: "White" },
             { text: "I have keys, but open no locks. I have space, but no room. You can enter, but can’t go outside. What am I?", options: ["A piano", "A computer", "A keyboard"], answer: "A keyboard" },
             { text: "What has an eye, but cannot see?", options: ["A potato", "A storm", "A needle"], answer: "A needle" },
             { text: "What is full of holes but still holds water?", options: ["A net", "A sponge", "A strainer"], answer: "A sponge" },
@@ -684,3 +677,5 @@ const cognitiveQuizzes = {
         ]
     }
 };
+
+const allQuestionnaires = { ...healthQuestionnaires, ...cognitiveQuizzes };
