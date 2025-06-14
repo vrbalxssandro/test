@@ -1,0 +1,531 @@
+/*
+================================================================================
+                                 CRITICAL WARNING
+================================================================================
+This file contains extensive self-assessment questions. IT IS NOT A DIAGNOSTIC TOOL. 
+Its purpose is to provide an informational starting point for a conversation with a 
+qualified mental health professional. A high score is an indicator to SEEK PROFESSIONAL 
+ADVICE, not a diagnosis. Symptom overlap is normal.
+================================================================================
+*/
+
+const SAFETY_WARNING_QUESTIONS = [
+    { text: "SPECIAL ATTENTION: In the last month, I have had thoughts of harming myself.", type: 'safety' },
+    { text: "SPECIAL ATTENTION: I have had thoughts that I or the world would be better off if I were not alive.", type: 'safety' }
+];
+
+const questionnaires = {
+    'all-in-one': {
+        title: 'Comprehensive Symptom Mapper',
+        description: 'This is a curated screener designed to identify potential areas of concern across a broad range of conditions. It is not exhaustive. Its purpose is to highlight patterns and symptom overlaps that you can discuss with a professional.',
+        questions: [
+            // --- MOOD & EMOTION ---
+            { text: "I feel a persistent sense of sadness, emptiness, or hopelessness.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'bpd', 'bipolar-spectrum'] },
+            { text: "I have lost interest or pleasure in activities I once found enjoyable (anhedonia).", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'ptsd'] },
+            { text: "My emotional reactions feel far more intense than the situation seems to warrant.", mapsTo: ['adhd-adult', 'adhd-teen', 'bpd', 'bipolar-spectrum'] },
+            { text: "My mood is extremely reactive and can shift dramatically within a single day.", mapsTo: ['bpd', 'adhd-adult', 'bipolar-spectrum'] },
+            { text: "I have distinct periods of feeling unusually 'up,' energetic, or irritable, needing little sleep but feeling full of energy.", mapsTo: ['bipolar-spectrum'] },
+            { text: "I have a chronic, long-standing feeling of emptiness inside.", mapsTo: ['bpd', 'pdd-dysthymia'] },
+            { text: "I have a short temper and can become quickly irritable over minor frustrations.", mapsTo: ['gad', 'mdd-teen', 'adhd-adult', 'ptsd'] },
+
+            // --- ANXIETY & WORRY ---
+            { text: "I worry uncontrollably about a wide range of different things, and find it difficult to stop.", mapsTo: ['gad'] },
+            { text: "I experience intense fear and anxiety in social situations because I'm afraid of being watched or judged.", mapsTo: ['social-anxiety', 'avpd'] },
+            { text: "I am plagued by unwanted, intrusive thoughts or images that I find disturbing (obsessions).", mapsTo: ['ocd', 'ptsd'] },
+            { text: "I feel driven to perform certain repetitive behaviors or mental rituals to reduce my anxiety (compulsions).", mapsTo: ['ocd'] },
+            { text: "I am constantly 'on guard' for danger and am easily startled (hypervigilance).", mapsTo: ['ptsd', 'gad'] },
+
+            // --- COGNITION & FOCUS ---
+            { text: "I have significant difficulty concentrating, and my mind often wanders or feels 'foggy'.", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd', 'mdd-teen', 'gad', 'ptsd'] },
+            { text: "I am very forgetful in my daily life (e.g., losing items, forgetting appointments).", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd'] },
+            { text: "The thought of organizing a complex task feels so overwhelming that I avoid it completely.", mapsTo: ['adhd-adult', 'adhd-teen', 'mdd'] },
+            { text: "I have a very poor sense of time, often being very late or misjudging how long tasks will take.", mapsTo: ['adhd-adult', 'adhd-teen', 'dsps'] },
+            { text: "I find small talk confusing and exhausting; I prefer deep, focused conversations.", mapsTo: ['autism-spectrum'] },
+
+            // --- BEHAVIOR & IMPULSE CONTROL ---
+            { text: "I make impulsive decisions with significant consequences (e.g., spending, relationships, career choices).", mapsTo: ['bpd', 'adhd-adult', 'bipolar-spectrum'] },
+            { text: "I actively avoid situations, places, or people that remind me of a past traumatic event.", mapsTo: ['ptsd', 'social-anxiety'] },
+            { text: "I engage in repetitive physical movements (stimming) like rocking, pacing, or hand-flapping to regulate my emotions.", mapsTo: ['autism-spectrum'] },
+            { text: "I have a strong need for my routines and rituals, and I get deeply distressed if they are disrupted.", mapsTo: ['autism-spectrum', 'ocd'] },
+            
+            // --- SELF-PERCEPTION & RELATIONSHIPS ---
+            { text: "I have a deep-seated belief that I am fundamentally flawed, inadequate, or inferior to others.", mapsTo: ['avpd', 'bpd', 'pdd-dysthymia', 'mdd'] },
+            { text: "My relationships are often intense and unstable, swinging between seeing people as perfect and seeing them as terrible.", mapsTo: ['bpd'] },
+            { text: "I make frantic efforts to avoid real or imagined abandonment.", mapsTo: ['bpd'] },
+            { text: "I avoid getting close to people unless I am absolutely certain they will like me.", mapsTo: ['avpd', 'social-anxiety'] },
+            { text: "I feel like I have to 'mask' or perform a version of myself to fit in socially.", mapsTo: ['autism-spectrum', 'social-anxiety'] },
+
+            // --- PHYSICAL & SOMATIC ---
+            { text: "I feel an internal restlessness in my body, even when I am sitting still.", mapsTo: ['adhd-adult', 'adhd-teen', 'gad'] },
+            { text: "My muscles are often tense or sore, or I experience unexplained aches and pains.", mapsTo: ['gad', 'mdd', 'ptsd'] },
+            { text: "I am extremely sensitive to sensory input like bright lights, loud sounds, or specific textures.", mapsTo: ['autism-spectrum', 'ptsd'] },
+            
+            // --- SLEEP PATTERNS ---
+            { text: "I have persistent trouble falling asleep, staying asleep, or I wake up feeling unrefreshed.", mapsTo: ['insomnia', 'mdd', 'gad', 'ptsd'] },
+            { text: "If left to my own devices, my body's natural schedule is to sleep very late (e.g., 3 AM) and wake up very late (e.g., 11 AM).", mapsTo: ['dsps'] },
+
+            // --- EATING PATTERNS ---
+            { text: "I avoid many foods due to their sensory characteristics (texture, smell) or a fear of aversive consequences (choking, vomiting), NOT due to body image concerns.", mapsTo: ['arfid', 'autism-spectrum'] },
+            { text: "My eating habits have led to significant weight loss or nutritional deficiencies.", mapsTo: ['arfid', 'mdd'] },
+
+        ].concat(SAFETY_WARNING_QUESTIONS)
+    },
+    'adhd-adult': {
+        title: 'ADHD Screener (Adult)',
+        description: 'This screener explores traits of ADHD as they commonly appear in adults. Answer based on your patterns over the last 6 months.',
+        questions: [
+            { text: "I make careless mistakes at work or in personal projects because I have trouble sustaining attention to details." },
+            { text: "My mind wanders frequently during meetings or long conversations." },
+            { text: "I struggle to follow through on multi-step instructions or finish administrative tasks (e.g., reports, forms)." },
+            { text: "The thought of organizing a complex task (like a holiday or a big project) feels so overwhelming that I avoid it." },
+            { text: "I frequently lose essential items like my keys, wallet, phone, or important documents." },
+            { text: "I am forgetful in daily activities, like forgetting appointments, paying bills, or returning calls." },
+            { text: "I have 'time blindness' - I severely underestimate or overestimate how long tasks will take." },
+            { text: "I often wait until the last minute, thriving under the pressure of a deadline to get things done." },
+            { text: "My working memory is poor; I might forget what I was saying mid-sentence." },
+            { text: "I have difficulty switching my focus from one task to another smoothly." },
+            { text: "I feel an internal sense of restlessness, even when I am sitting still." },
+            { text: "I fidget with my hands or feet, tap, or squirm in my seat during long meetings." },
+            { text: "I feel compelled to be constantly busy or 'on the go'." },
+            { text: "I have difficulty engaging in leisure activities quietly; I feel the need to be productive or busy." },
+            { text: "I often talk excessively, sometimes dominating conversations." },
+            { text: "I find it hard to wait my turn in conversations or in a queue." },
+            { text: "I interrupt others, not to be rude, but because I'm afraid I'll forget my thought." },
+            { text: "I make significant, impulsive decisions without fully considering the long-term consequences." },
+            { text: "I have a tendency to develop intense new hobbies and then drop them just as quickly." },
+            { text: "My emotional reactions feel far more intense than the situation warrants (e.g., small frustrations cause intense anger)." },
+            { text: "I experience extreme emotional sensitivity to perceived criticism or rejection." },
+            { text: "My mood can shift dramatically and quickly throughout the day." },
+        ]
+    },
+    'adhd-teen': {
+        title: 'ADHD Screener (Teen)',
+        description: 'This screener explores traits of ADHD as they commonly appear in teenagers. Answer based on your patterns over the last 6 months.',
+        questions: [
+            { text: "I make careless mistakes on schoolwork, tests, or chores." },
+            { text: "My mind wanders frequently during class lectures or while doing homework." },
+            { text: "I struggle to follow through on instructions from teachers or parents, often getting sidetracked." },
+            { text: "My bedroom, backpack, or school locker is often disorganized and messy." },
+            { text: "I frequently lose things I need for school or activities (e.g., homework, phone, sports equipment)." },
+            { text: "I am forgetful in daily life, like forgetting chores, assignments, or appointments." },
+            { text: "I have trouble estimating how long homework or a project will take, often starting it too late." },
+            { text: "I procrastinate on long-term school projects until the night before they are due." },
+            { text: "I know what I need to do for school, but I just can't make myself start." },
+            { text: "I have trouble listening to all the details of instructions." },
+            { text: "I feel restless and fidgety, finding it hard to stay in my seat during class." },
+            { text: "I tap my feet, hands, or doodle constantly when I'm supposed to be still." },
+            { text: "I have difficulty just 'hanging out' quietly; I feel a need to be active or doing something exciting." },
+            { text: "I often talk excessively, and my friends or family tell me I talk too much." },
+            { text: "I blurt out answers in class before the teacher has finished the question." },
+            { text: "I interrupt my friends' conversations or games." },
+            { text: "I act on impulse, saying or doing things without thinking about the consequences first." },
+            { text: "My feelings get hurt very easily by things my friends say or do." },
+            { text: "I get frustrated or angry much more quickly than my peers." },
+            { text: "I find it hard to stick with a sport or hobby for a long time." },
+            { text: "I feel like my emotions are a rollercoaster." }
+        ]
+    },
+    'autism-spectrum': {
+        title: 'Autism Spectrum Trait Profile',
+        description: 'Autism is a spectrum. This screener does not provide a "type," but rather a profile of your traits across different domains. Answer based on your entire life experience.',
+        trait_profile: true,
+        domains: {
+            'social': 'Social Communication',
+            'sensory': 'Sensory Experience',
+            'rrb': 'Repetitive Behaviors & Routines'
+        },
+        questions: [
+            { text: "I find 'small talk' and social chit-chat to be confusing, unnatural, and exhausting.", domains: ['social'] },
+            { text: "I've been told my facial expressions are limited or don't match my emotional state.", domains: ['social'] },
+            { text: "I mentally rehearse or 'script' conversations before they happen.", domains: ['social'] },
+            { text: "After social events, I analyze my conversations and worry about mistakes I might have made.", domains: ['social'] },
+            { text: "I often take things literally and get confused by sarcasm, idioms, or metaphors.", domains: ['social'] },
+            { text: "A 'social hangover' is a real phenomenon for me; I need significant alone time to recover after socializing.", domains: ['social'] },
+            { text: "I struggle to understand and follow the 'unwritten rules' of social conduct.", domains: ['social'] },
+            { text: "I feel like I am 'masking'—consciously performing a version of myself to fit in—in most social situations.", domains: ['social'] },
+            { text: "I have difficulty interpreting others' body language, tone of voice, or intentions.", domains: ['social'] },
+            { text: "Making or maintaining eye contact feels unnatural, intense, or intrusive.", domains: ['social'] },
+            { text: "I find it easier and more natural to interact with people online than in person.", domains: ['social'] },
+            { text: "I have very strong, deep, and specific interests (special interests) that I can focus on for hours.", domains: ['rrb'] },
+            { text: "I could talk endlessly about my special interests, even if others seem bored.", domains: ['rrb'] },
+            { text: "Unexpected changes to my daily routine or plans cause me significant anxiety and distress.", domains: ['rrb'] },
+            { text: "I have a strong need for order, systems, and predictability in my environment.", domains: ['rrb'] },
+            { text: "I engage in repetitive physical movements ('stimming'), especially when excited, stressed, or thinking (e.g., hand-flapping, rocking, pacing, finger-flicking).", domains: ['rrb'] },
+            { text: "I find deep comfort in repeating certain words, phrases, or re-watching the same media.", domains: ['rrb'] },
+            { text: "I am hypersensitive to certain sounds, to the point of them being physically painful or overwhelming (misophonia).", domains: ['sensory'] },
+            { text: "Bright lights, fluorescent lighting, or sunlight can be distressing or overwhelming to me.", domains: ['sensory'] },
+            { text: "I am very particular about the texture of food, and certain textures can make me gag.", domains: ['sensory'] },
+            { text: "I am sensitive to the feeling of certain fabrics, seams, or tags on my skin.", domains: ['sensory'] },
+            { text: "Conversely, I might be under-sensitive (hyposensitive) to pain, temperature, or hunger cues.", domains: ['sensory'] },
+            { text: "I have difficulty identifying and naming my own emotions (alexithymia).", domains: ['social', 'sensory'] },
+            { text: "I have a very strong sense of justice and fairness, and I get deeply upset by injustice or rule-breaking.", domains: ['social', 'rrb'] },
+            { text: "I often feel like an 'alien' or an observer of the human race, trying to figure out how it works.", domains: ['social'] }
+        ]
+    },
+    'mdd': {
+        title: 'Major Depression Screener (Adult)',
+        description: 'MDD is a mood disorder causing a persistent feeling of sadness and loss of interest. Answer based on your feelings over the last 2 weeks.',
+        questions: [
+            { text: "I feel a pervasive and profound sadness or emptiness most of the day, almost every day." },
+            { text: "I have lost all interest or pleasure in hobbies and activities I used to enjoy." },
+            { text: "The future feels hopeless, bleak, and not worth looking forward to." },
+            { text: "I find myself crying frequently, sometimes for no apparent reason." },
+            { text: "I feel more irritable, frustrated, or angry than usual over small things." },
+            { text: "I have strong feelings of worthlessness, or I ruminate on past failures." },
+            { text: "I experience excessive or inappropriate guilt, blaming myself for things that aren't my fault." },
+            { text: "I find it extremely difficult to concentrate at work or on personal tasks." },
+            { text: "Making decisions, even simple ones, feels overwhelming and impossible." },
+            { text: "My memory seems poor; I have trouble recalling information." },
+            { text: "I feel a profound lack of energy and a bone-deep fatigue that sleep doesn't fix." },
+            { text: "My sleep has been severely disrupted: I either can't fall asleep/stay asleep (insomnia) or I'm sleeping excessively (hypersomnia)." },
+            { text: "My appetite has changed drastically, leading to significant, unintentional weight loss or gain." },
+            { text: "I experience unexplained physical symptoms like headaches, stomach problems, or chronic body aches." },
+            { text: "My movements and speech feel physically slowed down, as if I'm moving through water." },
+            { text: "Conversely, I feel physically agitated and restless, unable to sit still." },
+            { text: "I have withdrawn from friends and family and actively avoid social contact." },
+            { text: "I have neglected my personal hygiene or the upkeep of my home." },
+            { text: "Performing basic daily tasks like showering or cooking requires immense effort." },
+            { text: "My sex drive has significantly decreased." },
+        ].concat(SAFETY_WARNING_QUESTIONS)
+    },
+    'mdd-teen': {
+        title: 'Depression Screener (Teen)',
+        description: 'Depression in teens can look different, often including irritability and anger. Answer based on your feelings over the last 2 weeks.',
+        questions: [
+            { text: "I feel sad, down, or empty most of the time." },
+            { text: "I feel irritable, cranky, or angry a lot, even over small things." },
+            { text: "I've lost interest in things I used to enjoy, like hobbies, sports, or hanging out with friends." },
+            { text: "The future feels hopeless, and I feel like things will never get better." },
+            { text: "I feel worthless or guilty about things that aren't my fault." },
+            { text: "I feel like nobody really understands or cares about me." },
+            { text: "I find it hard to concentrate in school, and my grades may have dropped." },
+            { text: "I have no energy and feel tired all the time, even if I've slept." },
+            { text: "My sleep has changed; I either have trouble sleeping or I want to sleep all the time." },
+            { text: "My appetite has changed, and I'm eating a lot more or a lot less than usual." },
+            { text: "I have unexplained aches and pains, like headaches or stomachaches." },
+            { text: "I have pulled away from my friends and family." },
+            { text: "I am extremely sensitive to rejection or failure." },
+            { text: "I find it hard to make decisions about simple things." },
+            { text: "I think about death or dying more than I used to." },
+            { text: "I feel restless and agitated." },
+            { text: "I have started using alcohol or drugs to try to feel better." },
+            { text: "I feel a sense of numbness, like I can't feel anything at all." },
+            { text: "I have trouble enjoying things that are supposed to be fun." },
+            { text: "I cry easily or feel like crying but can't." }
+        ].concat(SAFETY_WARNING_QUESTIONS)
+    },
+    'pdd-dysthymia': {
+        title: 'Persistent Depressive Disorder (Dysthymia) Screener',
+        description: 'Dysthymia is a chronic form of depression. The feeling of depression lasts for a long time - often for years. Please answer based on your experience over the last 2 years or longer.',
+        questions: [
+            { text: "For most days over the last two years (or longer), I have felt a low-grade sadness or emptiness." },
+            { text: "I can't remember the last time I felt genuinely happy or excited for an extended period." },
+            { text: "My low energy and fatigue are a constant part of my daily life." },
+            { text: "I have a long-standing pattern of low self-esteem; I often feel inadequate or like a failure." },
+            { text: "I am often described as pessimistic, cynical, or a 'complainer'." },
+            { text: "I struggle with concentration and making decisions, and this has been a long-term problem." },
+            { text: "My sleep patterns have been consistently poor (too little or too much sleep) for years." },
+            { text: "I often feel hopeless about my situation ever improving." },
+            { text: "I am able to function in daily life, but everything feels like a significant effort." },
+            { text: "People who have known me for a long time might say my 'down' mood is just part of my personality." },
+            { text: "I have good days, but the underlying feeling of 'grayness' or melancholy always returns." },
+            { text: "I am often overly critical of myself and others." },
+            { text: "I have trouble 'bouncing back' from minor setbacks or disappointments." },
+            { text: "I am often irritable and have a shorter fuse than I would like." },
+            { text: "I feel socially withdrawn and prefer to be alone, not because of anxiety, but due to lack of energy and interest." },
+            { text: "On 'good days', I just feel 'not sad' rather than genuinely happy." },
+            { text: "I sometimes have periods where my depression gets much worse, like a full-blown major depressive episode." },
+            { text: "I have difficulty finding enjoyment in activities that are supposed to be fun." },
+            { text: "I feel like I'm just going through the motions of life." },
+            { text: "I have a hard time feeling optimistic about the future." }
+        ]
+    },
+    'bipolar-spectrum': {
+        title: 'Bipolar Spectrum Screener',
+        description: 'Bipolar Disorder is characterized by extreme mood swings that include emotional highs (mania or hypomania) and lows (depression). This screener asks about both types of episodes. Please answer based on your entire life experiences.',
+        questions: [
+            { text: "I have had distinct periods of feeling intensely sad, empty, and hopeless, lasting at least two weeks." },
+            { text: "During these low periods, I lose all interest in activities I normally enjoy." },
+            { text: "In my low periods, my energy vanishes, and I struggle with profound fatigue and changes in sleep." },
+            { text: "I have had distinct periods where I felt unusually 'up,' high, euphoric, or extremely irritable for several days." },
+            { text: "During these 'up' periods, I needed significantly less sleep but still felt full of energy." },
+            { text: "During these periods, my thoughts raced, and I talked much faster and more than usual." },
+ V           { text: "I have felt unusually self-important, grandiose, or talented during these times." },
+            { text: "I was easily distracted, with my attention jumping from one thing to another." },
+            { text: "I became intensely involved in multiple projects or goal-directed activities at once (at work, school, or socially)." },
+            { text: "I have engaged in impulsive, high-risk behaviors I normally wouldn't, such as spending sprees, reckless driving, or risky sexual encounters." },
+            { text: "My friends or family have commented on my extreme mood shifts." },
+            { text: "These mood episodes have caused significant problems in my relationships, work, or school." },
+            { text: "After a high-energy period, I often 'crash' into a severe depressive episode." },
+            { text: "Antidepressants have seemed to make me feel worse, agitated, or triggered a high-energy state." },
+            { text: "My self-confidence fluctuates from feeling worthless to feeling on top of the world." },
+            { text: "During my 'up' periods, my judgment is impaired." },
+            { text: "I experience 'mixed episodes' where I feel depressed and agitated/energized at the same time." },
+            { text: "The intensity of my moods feels out of my control." },
+            { text: "My ideas and plans during 'up' periods often seem unrealistic or strange to others." },
+            { text: "I crave stimulation and excitement during my high periods." }
+        ].concat(SAFETY_WARNING_QUESTIONS)
+    },
+    'gad': {
+        title: 'General Anxiety Disorder (GAD) Screener',
+        description: 'GAD is characterized by persistent and excessive worry about a number of different things. This worry is difficult to control and is often accompanied by physical symptoms. Answer based on the last 6 months.',
+        questions: [
+            { text: "I find myself worrying uncontrollably about a wide range of things (e.g., health, money, work, family)." },
+            { text: "I have difficulty stopping or controlling my worry; it feels like it takes on a life of its own." },
+            { text: "I feel restless, keyed up, or on edge most of the time." },
+            { text: "I get tired easily and feel a sense of pervasive fatigue." },
+            { text: "I have difficulty concentrating because my mind is occupied by worries." },
+            { text: "My muscles are often tense or sore, especially in my neck, shoulders, or jaw." },
+            { text: "I am often irritable or have a short fuse, even over small things." },
+            { text: "I have trouble falling asleep or staying asleep because my mind is racing with anxious thoughts." },
+            { text: "I often anticipate disaster and am overly concerned about worst-case scenarios in everyday situations (catastrophizing)." },
+            { text: "I spend a lot of time and energy planning and preparing for all possible negative outcomes." },
+            { text: "I seek frequent reassurance from others that everything will be okay." },
+            { text: "I experience physical symptoms like stomachaches, nausea, sweating, or a racing heart due to worry." },
+            { text: "I feel jumpy and am easily startled." },
+            { text: "I avoid situations or procrastinate on tasks because they trigger my anxiety." },
+            { text: "The worry feels like a 'background noise' that is always on." },
+            { text: "I worry about worrying itself." },
+
+            { text: "I have a very low tolerance for ambiguity or uncertainty." },
+            { text: "I spend a lot of time double-checking things." },
+            { text: "My worry feels disproportionate to the actual threat of the situation." },
+            { text: "My anxiety and worry significantly interfere with my social life, work, or other important areas of life." }
+        ]
+    },
+    'social-anxiety': {
+        title: 'Social Anxiety Disorder (SAD) Screener',
+        description: 'SAD is an intense fear of being watched and judged by others. This fear can affect work, school, and other day-to-day activities. Answer based on your experiences in social settings.',
+        questions: [
+            { text: "I am terrified of situations where I might be scrutinized by others." },
+            { text: "I worry for days or weeks before a social event." },
+            { text: "I am afraid of acting or appearing anxious (e.g., blushing, sweating, trembling) in front of others." },
+            { text: "I fear that I will do or say something to humiliate or embarrass myself." },
+            { text: "I actively avoid social situations like parties, meetings, or public speaking." },
+            { text: "After a social interaction, I analyze my performance and obsess over perceived flaws ('post-event processing')." },
+            { text: "I experience intense physical symptoms in social situations (e.g., racing heart, nausea, shortness of breath, dizziness)."},
+            { text: "I use 'safety behaviors' to cope, like staying on my phone, drinking, or sticking to one person I know well." },
+            { text: "My fear or anxiety is out of proportion to the actual threat posed by the situation." },
+            { text: "I find it extremely difficult to talk to strangers or people in authority." },
+            { text: "I avoid eating or drinking in front of others."},
+            { text: "I fear being the center of attention."},
+            { text: "I find it hard to make eye contact with people I don't know well."},
+            { text: "I am self-conscious to a painful degree in everyday social encounters."},
+            { text: "The fear of being judged negatively is a constant presence in my social life."},
+            { text: "I find it difficult to speak up in a group or meeting."},
+            { text: "I have turned down opportunities (jobs, promotions, relationships) because they would require social interaction."},
+            { text: "I often cancel plans at the last minute because of anxiety."},
+            { text: "I feel lonely but the fear of socializing feels even worse."},
+            { text: "I assume people are thinking negative things about me."}
+        ]
+    },
+    'ocd': {
+        title: 'Obsessive-Compulsive Disorder (OCD) Screener',
+        description: 'OCD is not about being neat or tidy. It involves having obsessions (unwanted, intrusive thoughts, images, or urges that cause distress) and/or compulsions (repetitive behaviors or mental acts that you feel driven to perform to reduce anxiety).',
+        questions: [
+            { text: "I am plagued by unwanted, intrusive thoughts or images that I find disturbing or nonsensical." },
+            { text: "I worry excessively about contamination (e.g., germs, dirt, chemicals)." },
+            { text: "I have recurring, distressing doubts (e.g., 'Did I lock the door? Did I turn off the stove?')." },
+            { text: "I have an intense need for things to be in a specific order, symmetrical, or 'just right'." },
+            { text: "I have intrusive thoughts of a violent or horrific nature that I would never act upon." },
+            { text: "I have recurring fears of accidentally harming someone." },
+            { text: "I am preoccupied with religious or moral questions to a distressing degree (scrupulosity)." },
+            { text: "I fear that if I don't think or do something in a certain way, something terrible will happen." },
+            { text: "I feel driven to perform certain repetitive behaviors (e.g., hand washing, ordering, checking)." },
+            { text: "I perform mental rituals (e.g., praying, counting, repeating words silently) to try to neutralize bad thoughts or prevent bad things from happening." },
+            { text: "I avoid certain situations, places, or objects that trigger my obsessions." },
+            { text: "I spend a significant amount of time each day (e.g., more than an hour) on these thoughts or rituals." },
+            { text: "I know my thoughts or behaviors are excessive or irrational, but I feel I cannot control them." },
+            { text: "My obsessions and compulsions cause me significant distress and interfere with my daily life." },
+            { text: "I feel a temporary sense of relief after performing a compulsion, but the anxiety soon returns." },
+            { text: "I need to confess things or repeatedly ask for reassurance from others." },
+            { text: "I must touch, tap, or perform actions a certain number of times." },
+            { text: "My need for order goes far beyond simple neatness and causes me anxiety." },
+            { text: "I have a hard time throwing things away because I fear I might need them (hoarding)." },
+            { text: "I am afraid of my own thoughts." }
+        ]
+    },
+    'ptsd': {
+        title: 'Post-Traumatic Stress (PTSD) Screener',
+        description: 'PTSD can develop after experiencing or witnessing a terrifying event. This screener asks about symptoms that can occur after trauma. Please answer with a specific traumatic event in mind, if applicable.',
+        questions: [
+            { text: "I have unwanted, upsetting memories of the traumatic event." },
+            { text: "I have recurrent, distressing dreams or nightmares about the event." },
+            { text: "I experience flashbacks, feeling or acting as if the traumatic event were happening again." },
+            { text: "I feel intense emotional distress when reminded of the event." },
+            { text: "I have strong physical reactions (e.g., racing heart, sweating) when reminded of the event." },
+            { text: "I actively avoid memories, thoughts, or feelings related to the event." },
+            { text: "I actively avoid external reminders (people, places, conversations, activities) of the event." },
+            { text: "I have trouble remembering important parts of the traumatic event." },
+            { text: "I have persistent and exaggerated negative beliefs about myself, others, or the world (e.g., 'I am bad,' 'No one can be trusted')." },
+            { text: "I constantly blame myself or others for the event or its consequences." },
+            { text: "I have a persistent negative emotional state (e.g., fear, horror, anger, guilt, or shame)." },
+            { text: "I have lost interest in activities I once enjoyed." },
+            { text: "I feel detached or estranged from others." },
+            { text: "I am unable to experience positive emotions (e.g., happiness, love, satisfaction)." },
+            { text: "I am irritable and have angry outbursts with little provocation." },
+            { text: "I engage in reckless or self-destructive behavior." },
+            { text: "I am hypervigilant, always on guard for danger." },
+            { text: "I have an exaggerated startle response (I am very 'jumpy')." },
+            { text: "I have problems with concentration." },
+            { text: "I have difficulty falling or staying asleep." }
+        ]
+    },
+    'bpd': {
+        title: 'Borderline Personality (BPD) Trait Screener',
+        description: 'BPD is a condition characterized by difficulties with emotional regulation. This is expressed through a pervasive pattern of instability in mood, interpersonal relationships, self-image, and behavior. Please be mindful and gentle with yourself while answering.',
+        questions: [
+            { text: "I make frantic efforts to avoid real or imagined abandonment." },
+            { text: "My relationships are often intense and unstable, swinging between seeing people as perfect (idealization) and terrible (devaluation)." },
+            { text: "I have a persistently unstable sense of self; I don't really know who I am, and my identity can shift dramatically." },
+            { text: "I engage in impulsive behaviors in at least two areas that are potentially self-damaging (e.g., spending, substance use, reckless driving, binge eating)." },
+            { text: "My moods are extremely reactive and can shift from fine to despairing to enraged within hours." },
+            { text: "I have a chronic feeling of emptiness, like there is a void inside me." },
+            { text: "I have intense, inappropriate anger that is difficult to control." },
+            { text: "When under extreme stress, I can feel paranoid or 'dissociated' (feeling disconnected from myself or reality)." },
+            { text: "My fear of rejection or abandonment dictates many of my actions in relationships." },
+            { text: "I often feel misunderstood and alone, even when surrounded by people." },
+            { text: "I have a pattern of 'splitting' - seeing people or situations as all good or all bad." },
+            { text: "My self-image can change dramatically from one day to the next." },
+            { text: "I often act on a whim without thinking about the consequences." },
+            { text: "My emotional baseline feels fragile and easily disrupted." },
+            { text: "I often feel bored and seek constant stimulation to fill the feeling of emptiness." },
+            { text: "I may display frequent temper outbursts, constant anger, or get into verbal fights." },
+            { text: "My sense of self often depends on who I am with." },
+            { text: "The fear of being left alone is terrifying to me." },
+            { text: "I often set unrealistic goals and then feel devastated when I don't meet them." },
+            { text: "My life feels chaotic and out of my control." }
+        ].concat(SAFETY_WARNING_QUESTIONS)
+    },
+    'avpd': {
+        title: 'Avoidant Personality (AvPD) Trait Screener',
+        description: 'AvPD is characterized by a pervasive pattern of social inhibition, feelings of inadequacy, and hypersensitivity to negative evaluation. It is a deep-seated belief of being flawed that leads to avoidance of social connection.',
+        questions: [
+            { text: "I avoid occupational activities that involve significant interpersonal contact because of fears of criticism, disapproval, or rejection." },
+            { text: "I am unwilling to get involved with people unless I am certain of being liked." },
+            { text: "I show restraint within intimate relationships because of the fear of being shamed or ridiculed." },
+            { text: "I am preoccupied with being criticized or rejected in social situations." },
+            { text: "I am inhibited in new interpersonal situations because of feelings of inadequacy." },
+            { text: "I view myself as socially inept, personally unappealing, or inferior to others." },
+            { text: "My self-esteem is exceptionally low." },
+            { text: "I am unusually reluctant to take personal risks or to engage in any new activities because they may prove embarrassing." },
+            { text: "The fear of embarrassment is a primary motivator for my avoidance of social situations." },
+            { text: "I long for close relationships but feel unable to initiate them due to my deep-seated fears." },
+            { text: "I interpret neutral comments from others as negative or critical of me." },
+            { text: "I feel a pervasive sense of shame about who I am." },
+            { text: "I rehearse negative outcomes in my head before any social event." },
+            { text: "I have very few, if any, close friends, despite a desire for friendship." },
+            { text: "I feel lonely and isolated from the rest of the world." },
+            { text: "I often turn down social invitations, even if I want to go, because the anxiety is too great." },
+            { text: "I see other people as confident and capable, and myself as uniquely defective." },
+            { text: "Criticism, even if gentle or constructive, feels devastating and confirms my worst fears about myself." },
+            { text: "I create a 'safe' but very restricted life to avoid potential judgment." },
+            { text: "My shyness feels like a fundamental, unchangeable part of my being." }
+        ]
+    },
+    'pd-traits': {
+        title: 'General Personality Trait Screener',
+        description: 'This is not a diagnostic tool for any specific personality disorder. It is a general screener to identify long-standing, pervasive patterns of thought and behavior that cause distress and may warrant professional evaluation.',
+        questions: [
+            { text: "My way of seeing myself, others, and events is often very different from how others see them and has caused me problems." },
+            { text: "My emotional responses are often more intense or inappropriate than the situation calls for." },
+            { text: "I have long-standing, significant difficulties in my relationships with other people (e.g., family, friends, partners, colleagues)." },
+            { text: "I have long-standing problems with impulse control." },
+            { text: "These patterns of behavior are rigid and present across a broad range of personal and social situations." },
+            { text: "These patterns began in my adolescence or early adulthood and have been stable over time." },
+            { text: "I am deeply suspicious and mistrustful of others, assuming they intend to harm or deceive me." },
+            { text: "I have little to no interest in forming close relationships, including romantic ones, and prefer to be alone." },
+            { text: "I am told I am emotionally cold and detached." },
+            { text: "I have unusual or eccentric beliefs that others find strange." },
+            { text: "I make frantic efforts to avoid real or imagined abandonment." },
+            { text: "My relationships are often intense and unstable, swinging from idealization to devaluation." },
+            { text: "I have an unstable sense of self; I don't really know who I am." },
+            { text: "I require excessive admiration from others and have a strong sense of entitlement." },
+            { text: "I lack empathy and am unwilling to recognize the feelings and needs of others." },
+            { text: "I am often dramatic, theatrical, and express my emotions in an exaggerated way." },
+            { text: "I must be the center of attention and feel uncomfortable when I am not." },
+            { text: "I am preoccupied with details, rules, lists, and order to the point where the major point of the activity is lost." },
+            { text: "I am a perfectionist, and it often interferes with my ability to complete tasks." },
+            { text: "I view myself as socially inept, personally unappealing, or inferior to others." },
+            { text: "I am unwilling to get involved with people unless I am certain of being liked." }
+        ]
+    },
+    'insomnia': {
+        title: 'Chronic Insomnia Screener',
+        description: 'Insomnia is a persistent disorder that can make it hard to fall asleep, hard to stay asleep, or cause you to wake up too early. This is considered chronic when it occurs at least 3 nights per week for 3 months or longer.',
+        questions: [
+            { text: "I have difficulty falling asleep when I first go to bed, often lying awake for more than 30 minutes." },
+            { text: "I wake up one or more times during the night." },
+            { text: "When I wake up during the night, I find it difficult to get back to sleep for 30 minutes or more." },
+            { text: "I consistently wake up much earlier in the morning than I want to and cannot fall back asleep." },
+            { text: "My sleep is non-restorative; I wake up feeling tired and unrefreshed, even if I got enough hours." },
+            { text: "I experience significant fatigue or sleepiness during the day." },
+            { text: "My ability to concentrate, pay attention, or remember things is impaired because of my poor sleep." },
+            { text: "I feel moody, irritable, or anxious as a result of my lack of sleep." },
+            { text: "I worry excessively about not being able to sleep, and this 'sleep anxiety' makes it even harder to sleep." },
+            { text: "I have noticed a decrease in my performance at work or school due to sleep issues." },
+            { text: "My sleep problems persist even when I have adequate opportunity and a comfortable environment for sleep." },
+            { text: "I rely on over-the-counter sleep aids, alcohol, or other substances to help me sleep." },
+            { text: "I have physical tension or a feeling of being 'wired' when I try to go to sleep." },
+            { text: "I dread going to bed because I associate it with frustration and wakefulness." },
+            { text: "My sleep problems have a negative impact on my social life or relationships." },
+            { text: "I often check the clock throughout the night, which increases my anxiety." },
+            { text: "I've tried many different 'sleep hygiene' tips, but they haven't solved the core problem." },
+            { text: "My mind feels like it 'won't shut off' when I lie down to sleep." },
+            { text: "My sleep problems have persisted for three months or longer." },
+            { text: "My quality of life is significantly lower because of my poor sleep." }
+        ]
+    },
+    'arfid': {
+        title: 'ARFID Screener',
+        description: 'Avoidant/Restrictive Food Intake Disorder (ARFID) is an eating disturbance that is not driven by body image concerns. It involves avoidance due to sensory issues, lack of interest, or fear of aversive consequences.',
+        questions: [
+            { text: "My diet is extremely limited to a small number of 'safe' foods." },
+            { text: "I avoid foods with certain textures, smells, or appearances." },
+            { text: "The thought of trying a new food causes me significant anxiety or disgust." },
+            { text: "I have a general lack of interest in food or eating; it often feels like a chore." },
+            { text: "I have a significant fear of choking, vomiting, or having an allergic reaction when eating." },
+            { text: "I eat very slowly and/or need to take very small bites." },
+            { text: "My eating habits have led to significant weight loss or failure to gain expected weight." },
+            { text: "I have been diagnosed with nutritional deficiencies (like anemia) due to my diet." },
+            { text: "I often feel full quickly or experience abdominal pain after eating small amounts." },
+            { text: "My eating habits significantly interfere with my social life (e.g., I avoid restaurants, parties, or eating with others)." },
+            { text: "I am not concerned with my body shape or size, and my food restriction is not about trying to lose weight." },
+            { text: "A past negative experience with food (e.g., choking or getting sick) triggered or worsened my eating problems." },
+            { text: "I have difficulty recognizing hunger cues or often forget to eat." },
+            { text: "I rely on nutritional supplements (like Ensure/PediaSure) or a very limited range of foods to get my calories." },
+            { text: "I would like to eat more variety, but I feel physically or psychologically unable to." },
+            { text: "Seeing others eat foods I avoid can make me feel nauseous." },
+            { text: "My family or friends express significant concern about my limited diet." },
+            { text: "My list of acceptable foods has shrunk over time." },
+            { text: "The sensory experience of eating is often unpleasant for me." },
+            { text: "I am not attempting to lose weight through my eating habits." }
+        ]
+    },
+    'dsps': {
+        title: 'Delayed Sleep Phase Syndrome (DSPS) Screener',
+        description: 'DSPS is a circadian rhythm disorder where your internal clock is fundamentally out of sync with the conventional day-night cycle. It is not simply a preference. Answer based on your lifelong sleep patterns.',
+        questions: [
+            { text: "If I have no obligations, my body naturally wants to fall asleep very late (e.g., between 2 AM and 6 AM)." },
+            { text: "If I have no obligations, I would naturally wake up late in the morning or in the afternoon (e.g., between 10 AM and 2 PM)." },
+            { text: "When I follow this natural late schedule, I get a full 7-9 hours of sleep and feel well-rested." },
+            { text: "I find it nearly impossible to 'just go to bed earlier'; if I do, I just lie awake for hours." },
+            { text: "When I am forced to wake up early for a 9-5 schedule, I feel intensely groggy, disoriented, and unwell for hours (severe sleep inertia)." },
+            { text: "During the standard work/school week, I feel chronically sleep-deprived, like I have permanent jet lag." },
+            { text: "I feel most alert, focused, and creative during the late evening and nighttime hours." },
+            { text: "I have been called 'lazy,' 'unmotivated,' or 'undisciplined' because of my sleep patterns." },
+            { text: "This sleep pattern has been a consistent part of my life since my teenage years or earlier." },
+            { text: "I rely heavily on multiple alarms, caffeine, or other people to force me to wake up in the morning." },
+            { text: "On weekends, I 'sleep in' for many hours to try and catch up on my 'sleep debt' from the week." },
+            { text: "Attempts at good sleep hygiene (dark room, no caffeine, no screens) do not shift my natural sleep time." },
+            { text: "I get a 'second wind' of energy around the time most people are getting sleepy (e.g., 9-10 PM)." },
+            { text: "Melatonin or sleep aids often leave me feeling groggy but don't reliably shift my sleep phase long-term." },
+            { text: "I have missed morning appointments, classes, or been late for work because I could not wake up." },
+            { text: "I feel out of sync with the rest of the world." },
+            { text: "The idea of a job with a late start time or night shifts sounds ideal to me." },
+            { text: "My sleep problems are primarily about the *timing* of sleep, not the *ability* to sleep (once I'm in my natural window)." },
+            { text: "I have tried for years to conform to a normal schedule without success." },
+            { text: "I feel a sense of dread on Sunday nights, knowing the struggle to wake up is about to begin again." }
+        ]
+    }
+};
