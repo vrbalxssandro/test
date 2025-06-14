@@ -136,8 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         questionnaireForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            // REMOVED: The check that forced all questions to be answered.
-
             if (questionnaire.trait_profile) {
                 calculateTraitProfile(questionnaire, questionnaireForm, resultsContainer);
             } else if (qId === 'all-in-one') {
@@ -190,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
                 radio.type = 'radio'; radio.name = `question-${index}`; radio.value = option.value;
-                // radio.required = true; // No longer required
                 const span = document.createElement('span');
                 span.textContent = option.text;
                 label.appendChild(radio); label.appendChild(span);
@@ -278,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const resultItem = document.createElement('div');
             resultItem.className = 'result-item'; resultItem.style.animationDelay = `${delay}ms`;
-            resultItem.innerHTML = `<div class="result-title">${data.title}</div><div class="result-bar-container"><div class="result-bar" style="width: ${percentage.toFixed(1)}%;"></div></div><div class="result-percentage">${percentage.toFixed(0)}%</div>`;
+            resultItem.innerHTML = `<div class="result-title">${data.title}</div><div class="result-bar-container"><div class="result-bar" style="width: ${percentage.toFixed(1)}%; animation-delay: ${delay + 200}ms"></div></div><div class="result-percentage">${percentage.toFixed(0)}%</div>`;
             barChartContainer.appendChild(resultItem);
             delay += 100;
         }
@@ -334,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     pointLabels: { font: { size: 12 }, color: isDark ? '#f3f4f6' : '#1f2937' },
                     ticks: {
                         backdropColor: 'transparent', color: isDark ? '#9ca3af' : '#6b7280',
-                        stepSize: 25, max: 100, min: 0
+                        stepSize: 25, beginAtZero: true, max: 100
                     }
                 }},
                 plugins: { legend: { display: false } },
@@ -368,28 +365,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const title = item.querySelector('.result-title').textContent.trim();
                 const percentage = item.querySelector('.result-percentage').textContent.trim();
                 summaryText += `- ${title}: ${percentage}\n`;
-            else {
-                const score = container.querySelector('.gauge-value').textContent.trim();
-                summaryText += `Likelihood Score: ${score}\n`;
-            }
-
-            summaryText += "\n========================================\n";
-            summaryText += "IMPORTANT: These results are from an unofficial online screener and are NOT a diagnosis. They are intended to be a starting point for a conversation with a qualified mental health professional.";
-        
-            navigator.clipboard.writeText(summaryText).then(() => {
-                const copyBtn = document.getElementById('copy-results-btn');
-                const originalText = copyBtn.querySelector('span').textContent;
-                copyBtn.querySelector('span').textContent = 'Copied to Clipboard!';
-                copyBtn.disabled = true;
-                setTimeout(() => {
-                    copyBtn.querySelector('span').textContent = originalText;
-                    copyBtn.disabled = false;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy results: ', err);
-                alert('Failed to copy results. Please try again or copy manually.');
             });
+        } else {
+            const score = container.querySelector('.gauge-value').textContent.trim();
+            summaryText += `Likelihood Score: ${score}\n`;
         }
+
+        summaryText += "\n========================================\n";
+        summaryText += "IMPORTANT: These results are from an unofficial online screener and are NOT a diagnosis. They are intended to be a starting point for a conversation with a qualified mental health professional.";
+
+        navigator.clipboard.writeText(summaryText).then(() => {
+            const copyBtn = document.getElementById('copy-results-btn');
+            const originalText = copyBtn.querySelector('span').textContent;
+            copyBtn.querySelector('span').textContent = 'Copied to Clipboard!';
+            copyBtn.disabled = true;
+            setTimeout(() => {
+                copyBtn.querySelector('span').textContent = originalText;
+                copyBtn.disabled = false;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy results: ', err);
+            alert('Failed to copy results. Please try again or copy manually.');
+        });
+    }
 
     // --- MAIN EXECUTION ---
     initializeTheme();
