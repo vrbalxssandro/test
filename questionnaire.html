@@ -8,11 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for Infographics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container fade-in">
         <header>
             <div class="header-content">
                 <a href="index.html" class="back-link">← Back to Questionnaire List</a>
@@ -48,8 +50,19 @@
 
             <div id="results-container">
                 <h2>Your Results</h2>
-                <div id="score-display"></div>
-                <div id="spectrum-profile-container"></div>
+                
+                <!-- This div will hold all result visualizations -->
+                <div id="results-visuals">
+                    <!-- For single result (gauge) -->
+                    <div id="gauge-container" class="hidden"></div>
+                    <!-- For Symptom Mapper (radar chart) -->
+                    <div id="radar-chart-container" class="hidden">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <!-- For Bar Charts (all-in-one list, trait profile) -->
+                    <div id="bar-chart-container" class="hidden"></div>
+                </div>
+
                 <button id="copy-results-btn" class="secondary-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V16.5a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 015 16.5v-13A1.5 1.5 0 016.5 2H7v1.5z"></path><path d="M3 5.5A1.5 1.5 0 014.5 4H8v10.5A1.5 1.5 0 016.5 16h-2A1.5 1.5 0 013 14.5v-9z"></path></svg>
                     <span>Copy Results Summary</span>
