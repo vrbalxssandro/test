@@ -368,29 +368,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const title = item.querySelector('.result-title').textContent.trim();
                 const percentage = item.querySelector('.result-percentage').textContent.trim();
                 summaryText += `- ${title}: ${percentage}\n`;
-            });
-        else {
-            const score = container.querySelector('.gauge-value').textContent.trim();
-            summaryText += `Likelihood Score: ${score}\n`;
-        }
+            else {
+                const score = container.querySelector('.gauge-value').textContent.trim();
+                summaryText += `Likelihood Score: ${score}\n`;
+            }
 
-        summaryText += "\n========================================\n";
-        summaryText += "IMPORTANT: These results are from an unofficial online screener and are NOT a diagnosis. They are intended to be a starting point for a conversation with a qualified mental health professional.";
+            summaryText += "\n========================================\n";
+            summaryText += "IMPORTANT: These results are from an unofficial online screener and are NOT a diagnosis. They are intended to be a starting point for a conversation with a qualified mental health professional.";
         
-        navigator.clipboard.writeText(summaryText).then(() => {
-            const copyBtn = document.getElementById('copy-results-btn');
-            const originalText = copyBtn.querySelector('span').textContent;
-            copyBtn.querySelector('span').textContent = 'Copied to Clipboard!';
-            copyBtn.disabled = true;
-            setTimeout(() => {
-                copyBtn.querySelector('span').textContent = originalText;
-                copyBtn.disabled = false;
-            }, 2000);
-        }).catch(err => {
-            console.error('Failed to copy results: ', err);
-            alert('Failed to copy results. Please try again or copy manually.');
-        });
-    }
+            navigator.clipboard.writeText(summaryText).then(() => {
+                const copyBtn = document.getElementById('copy-results-btn');
+                const originalText = copyBtn.querySelector('span').textContent;
+                copyBtn.querySelector('span').textContent = 'Copied to Clipboard!';
+                copyBtn.disabled = true;
+                setTimeout(() => {
+                    copyBtn.querySelector('span').textContent = originalText;
+                    copyBtn.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy results: ', err);
+                alert('Failed to copy results. Please try again or copy manually.');
+            });
+        }
 
     // --- MAIN EXECUTION ---
     initializeTheme();
