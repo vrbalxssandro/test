@@ -53,6 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const proceedButton = document.getElementById('proceed-button');
         if (!proceedButton) return;
 
+        // Ensure initial state is correct
+        document.getElementById('questionnaire-selection').classList.add('hidden');
+        document.getElementById('user-context-gate').classList.remove('hidden');
+
         proceedButton.addEventListener('click', () => {
             const ageGroup = document.getElementById('age-group').value;
             if (!ageGroup) {
@@ -62,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('user-context-gate').classList.add('hidden');
             document.getElementById('questionnaire-selection').classList.remove('hidden');
+            document.getElementById('questionnaire-selection').style.display = 'block';
             populateQuestionnaires(ageGroup);
         });
     }
@@ -76,9 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const key in questionnaires) {
             let isApplicable = false;
             const questionnaireData = questionnaires[key];
+            const isAdultVersion = key === 'adhd-adult' || key === 'mdd';
 
             if (ageGroup === 'teen') {
-                if (!adultOnlyKeys.has(key) && key !== 'adhd-adult' && key !== 'mdd') {
+                if (!adultOnlyKeys.has(key) && !isAdultVersion) {
                     isApplicable = true;
                 }
             } else if (ageGroup === 'adult') {
@@ -113,26 +119,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        initializeQOLFeatures(); // Initialize scroll-to-top on this page too
+        initializeQOLFeatures();
 
-        // --- Core Questionnaire Functions ---
         const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progress-bar');
         const questionsContainer = document.getElementById('questions-container');
         const resultsContainer = document.getElementById('results-container');
         const copyBtn = document.getElementById('copy-results-btn');
+        
+        // Set initial visibility
+        resultsContainer.style.display = 'none';
+        progressContainer.style.display = 'block';
 
-        // Load questions
         questionnaireTitle.textContent = questionnaire.title;
         questionnaireDescription.textContent = questionnaire.description;
         loadQuestions(questionnaire, questionsContainer);
 
-        // Handle progress bar
-        progressContainer.classList.remove('hidden');
         questionnaireForm.addEventListener('change', () => updateProgressBar(questionnaire, questionnaireForm, progressBar));
         updateProgressBar(questionnaire, questionnaireForm, progressBar);
 
-        // Handle form submission
         questionnaireForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const totalQuestions = questionnaire.questions.length;
@@ -152,11 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             questionnaireForm.classList.add('hidden');
             progressContainer.classList.add('hidden');
-            resultsContainer.classList.remove('hidden');
+            resultsContainer.style.display = 'block';
             window.scrollTo(0, 0);
         });
         
-        // Handle copy results
         if (copyBtn) {
             copyBtn.addEventListener('click', () => copyResultsToClipboard(qId, questionnaire, resultsContainer));
         }
@@ -392,9 +396,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAIN EXECUTION ---
     initializeTheme();
+    initializeQOLFeatures();
+
     if (document.getElementById('user-context-gate')) {
         handleIndexPage();
-        initializeQOLFeatures(); // For scroll-to-top on index
     } else if (document.getElementById('questionnaire-form')) {
         handleQuestionnairePage();
     }
