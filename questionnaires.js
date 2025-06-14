@@ -2,10 +2,9 @@
 ================================================================================
                                  CRITICAL WARNING
 ================================================================================
-This file contains extensive self-assessment questions. IT IS NOT A DIAGNOSTIC TOOL. 
-Its purpose is to provide an informational starting point for a conversation with a 
-qualified mental health professional. A high score is an indicator to SEEK PROFESSIONAL 
-ADVICE, not a diagnosis. Symptom overlap is normal.
+This file contains all questionnaire data. The data is separated into two main objects:
+'healthQuestionnaires' and 'cognitiveQuizzes'. This separation is crucial for the
+app logic to correctly display tests on the right pages.
 ================================================================================
 */
 
@@ -14,10 +13,11 @@ const SAFETY_WARNING_QUESTIONS = [
     { text: "SPECIAL ATTENTION: I have had thoughts that I or the world would be better off if I were not alive.", type: 'safety' }
 ];
 
-const questionnaires = {
+const healthQuestionnaires = {
     'all-in-one': {
         title: 'Comprehensive Symptom Mapper',
         description: 'This is a curated screener designed to identify potential areas of concern across a broad range of conditions. It is not exhaustive. Its purpose is to highlight patterns and symptom overlaps that you can discuss with a professional.',
+        isHealth: true,
         questions: [
             { text: "I feel a persistent sense of sadness, emptiness, or hopelessness.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'bpd', 'bipolar-spectrum'], axis: 'Mood & Emotion' },
             { text: "I have lost interest or pleasure in activities I once found enjoyable.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'ptsd'], axis: 'Mood & Emotion' },
@@ -46,6 +46,7 @@ const questionnaires = {
     'adhd-adult': {
         title: 'ADHD Screener (Adult)',
         description: 'This screener explores traits of ADHD as they commonly appear in adults. Answer based on your patterns over the last 6 months.',
+        isHealth: true,
         questions: [
             { text: "I make careless mistakes at work or in personal projects because I have trouble sustaining attention to details." },
             { text: "My mind wanders frequently during meetings or long conversations." },
@@ -74,6 +75,7 @@ const questionnaires = {
     'adhd-teen': {
         title: 'ADHD Screener (Teen)',
         description: 'This screener explores traits of ADHD as they commonly appear in teenagers. Answer based on your patterns over the last 6 months.',
+        isHealth: true,
         questions: [
             { text: "I make careless mistakes on schoolwork, tests, or chores." },
             { text: "My mind wanders frequently during class lectures or while doing homework." },
@@ -101,7 +103,8 @@ const questionnaires = {
     'autism-spectrum': {
         title: 'Autism Spectrum Trait Profile',
         description: 'Autism is a spectrum. This screener does not provide a "type," but rather a profile of your traits across different domains. Answer based on your entire life experience.',
-        trait_profile: true,
+        isHealth: true,
+        type: 'trait-profile',
         domains: {
             'social': 'Social Communication',
             'sensory': 'Sensory Experience',
@@ -138,6 +141,7 @@ const questionnaires = {
     'mdd': {
         title: 'Major Depression Screener (Adult)',
         description: 'MDD is a mood disorder causing a persistent feeling of sadness and loss of interest. Answer based on your feelings over the last 2 weeks.',
+        isHealth: true,
         questions: [
             { text: "I feel a pervasive and profound sadness or emptiness most of the day, almost every day." },
             { text: "I have lost all interest or pleasure in hobbies and activities I used to enjoy." },
@@ -164,6 +168,7 @@ const questionnaires = {
     'mdd-teen': {
         title: 'Depression Screener (Teen)',
         description: 'Depression in teens can look different, often including irritability and anger. Answer based on your feelings over the last 2 weeks.',
+        isHealth: true,
         questions: [
             { text: "I feel sad, down, or empty most of the time." },
             { text: "I feel irritable, cranky, or angry a lot, even over small things." },
@@ -190,6 +195,7 @@ const questionnaires = {
     'pdd-dysthymia': {
         title: 'Persistent Depressive Disorder (Dysthymia) Screener',
         description: 'Dysthymia is a chronic form of depression. The feeling of depression lasts for a long time - often for years. Please answer based on your experience over the last 2 years or longer.',
+        isHealth: true,
         questions: [
             { text: "For most days over the last two years (or longer), I have felt a low-grade sadness or emptiness." },
             { text: "I can't remember the last time I felt genuinely happy or excited for an extended period." },
@@ -216,6 +222,7 @@ const questionnaires = {
     'bipolar-spectrum': {
         title: 'Bipolar Spectrum Screener',
         description: 'Bipolar Disorder is characterized by extreme mood swings that include emotional highs (mania or hypomania) and lows (depression). This screener asks about both types of episodes. Please answer based on your entire life experiences.',
+        isHealth: true,
         questions: [
             { text: "I have had distinct periods of feeling intensely sad, empty, and hopeless, lasting at least two weeks." },
             { text: "During these low periods, I lose all interest in activities I normally enjoy." },
@@ -242,6 +249,7 @@ const questionnaires = {
     'gad': {
         title: 'General Anxiety Disorder (GAD) Screener',
         description: 'GAD is characterized by persistent and excessive worry about a number of different things. This worry is difficult to control and is often accompanied by physical symptoms. Answer based on the last 6 months.',
+        isHealth: true,
         questions: [
             { text: "I find myself worrying uncontrollably about a wide range of things (e.g., health, money, work, family)." },
             { text: "I have difficulty stopping or controlling my worry; it feels like it takes on a life of its own." },
@@ -268,6 +276,7 @@ const questionnaires = {
     'social-anxiety': {
         title: 'Social Anxiety Disorder (SAD) Screener',
         description: 'SAD is an intense fear of being watched and judged by others. This fear can affect work, school, and other day-to-day activities. Answer based on your experiences in social settings.',
+        isHealth: true,
         questions: [
             { text: "I am terrified of situations where I might be scrutinized by others." },
             { text: "I worry for days or weeks before a social event." },
@@ -294,6 +303,7 @@ const questionnaires = {
     'ocd': {
         title: 'Obsessive-Compulsive Disorder (OCD) Screener',
         description: 'OCD is not about being neat or tidy. It involves having obsessions (unwanted, intrusive thoughts, images, or urges that cause distress) and/or compulsions (repetitive behaviors or mental acts that you feel driven to perform to reduce anxiety).',
+        isHealth: true,
         questions: [
             { text: "I am plagued by unwanted, intrusive thoughts or images that I find disturbing or nonsensical." },
             { text: "I worry excessively about contamination (e.g., germs, dirt, chemicals)." },
@@ -320,6 +330,7 @@ const questionnaires = {
     'ptsd': {
         title: 'Post-Traumatic Stress (PTSD) Screener',
         description: 'PTSD can develop after experiencing or witnessing a terrifying event. This screener asks about symptoms that can occur after trauma. Please answer with a specific traumatic event in mind, if applicable.',
+        isHealth: true,
         questions: [
             { text: "I have unwanted, upsetting memories of the traumatic event." },
             { text: "I have recurrent, distressing dreams or nightmares about the event." },
@@ -346,6 +357,7 @@ const questionnaires = {
     'bpd': {
         title: 'Borderline Personality (BPD) Trait Screener',
         description: 'BPD is a condition characterized by difficulties with emotional regulation. This is expressed through a pervasive pattern of instability in mood, interpersonal relationships, self-image, and behavior. Please be mindful and gentle with yourself while answering.',
+        isHealth: true,
         questions: [
             { text: "I make frantic efforts to avoid real or imagined abandonment." },
             { text: "My relationships are often intense and unstable, swinging between seeing people as perfect (idealization) and terrible (devaluation)." },
@@ -372,6 +384,7 @@ const questionnaires = {
     'avpd': {
         title: 'Avoidant Personality (AvPD) Trait Screener',
         description: 'AvPD is characterized by a pervasive pattern of social inhibition, feelings of inadequacy, and hypersensitivity to negative evaluation. It is a deep-seated belief of being flawed that leads to avoidance of social connection.',
+        isHealth: true,
         questions: [
             { text: "I avoid occupational activities that involve significant interpersonal contact because of fears of criticism, disapproval, or rejection." },
             { text: "I am unwilling to get involved with people unless I am certain of being liked." },
@@ -398,6 +411,7 @@ const questionnaires = {
     'pd-traits': {
         title: 'General Personality Trait Screener',
         description: 'This is not a diagnostic tool for any specific personality disorder. It is a general screener to identify long-standing, pervasive patterns of thought and behavior that cause distress and may warrant professional evaluation.',
+        isHealth: true,
         questions: [
             { text: "My way of seeing myself, others, and events is often very different from how others see them and has caused me problems." },
             { text: "My emotional responses are often more intense or inappropriate than the situation calls for." },
@@ -425,6 +439,7 @@ const questionnaires = {
     'insomnia': {
         title: 'Chronic Insomnia Screener',
         description: 'Insomnia is a persistent disorder that can make it hard to fall asleep, hard to stay asleep, or cause you to wake up too early. This is considered chronic when it occurs at least 3 nights per week for 3 months or longer.',
+        isHealth: true,
         questions: [
             { text: "I have difficulty falling asleep when I first go to bed, often lying awake for more than 30 minutes." },
             { text: "I wake up one or more times during the night." },
@@ -451,6 +466,7 @@ const questionnaires = {
     'arfid': {
         title: 'ARFID Screener',
         description: 'Avoidant/Restrictive Food Intake Disorder (ARFID) is an eating disturbance that is not driven by body image concerns. It involves avoidance due to sensory issues, lack of interest, or fear of aversive consequences.',
+        isHealth: true,
         questions: [
             { text: "My diet is extremely limited to a small number of 'safe' foods." },
             { text: "I avoid foods with certain textures, smells, or appearances." },
@@ -477,6 +493,7 @@ const questionnaires = {
     'dsps': {
         title: 'Delayed Sleep Phase Syndrome (DSPS) Screener',
         description: 'DSPS is a circadian rhythm disorder where your internal clock is fundamentally out of sync with the conventional day-night cycle. It is not simply a preference. Answer based on your lifelong sleep patterns.',
+        isHealth: true,
         questions: [
             { text: "If I have no obligations, my body naturally wants to fall asleep very late (e.g., between 2 AM and 6 AM)." },
             { text: "If I have no obligations, I would naturally wake up late in the morning or in the afternoon (e.g., between 10 AM and 2 PM)." },
@@ -498,6 +515,37 @@ const questionnaires = {
             { text: "My sleep problems are primarily about the *timing* of sleep, not the *ability* to sleep (once I'm in my natural window)." },
             { text: "I have tried for years to conform to a normal schedule without success." },
             { text: "I feel a sense of dread on Sunday nights, knowing the struggle to wake up is about to begin again." }
+        ]
+    }
+};
+
+const cognitiveQuizzes = {
+    'learning-style': {
+        title: 'Learning Style Quiz (VARK model)',
+        description: 'This quiz helps you identify your preferred learning style based on the VARK model (Visual, Aural, Read/Write, Kinesthetic). This is for self-reflection and is not a scientifically rigid instrument.',
+        type: 'learning-style',
+        questions: [
+            { text: "When I'm learning a new skill, I prefer to:", style: {'V': "Watch a video demonstration.", 'A': "Listen to someone explain it.", 'R': "Read the instructions.", 'K': "Just start doing it and figure it out."}},
+            { text: "To remember a phone number, I am most likely to:", style: {'V': "Visualize the numbers on a keypad.", 'A': "Say it out loud to myself several times.", 'R': "Write it down.", 'K': "Imagine myself physically dialing the number."}},
+            { text: "When I'm in a new city, I find my way by:", style: {'V': "Using a map.", 'A': "Asking for verbal directions.", 'R': "Reading street signs and a guidebook.", 'K': "Walking around to get a feel for the layout."}},
+            { text: "In a class or meeting, I learn best from:", style: {'V': "Diagrams, charts, and pictures.", 'A': "Group discussions and lectures.", 'R': "Handouts and detailed notes.", 'K': "Hands-on activities and role-playing."}},
+            { text: "When assembling furniture, I first:", style: {'V': "Look at the diagrams.", 'A': "Have someone tell me the steps.", 'R': "Read the entire instruction manual cover to cover.", 'K': "Lay out all the pieces and start fitting them together."}},
+            { text: "My favorite way to get news is:", style: {'V': "Watching the news on TV.", 'A': "Listening to a news podcast or the radio.", 'R': "Reading a newspaper or news website.", 'K': "Discussing current events with others (interactive)."}},
+            { text: "When I'm spelling a difficult word, I:", style: {'V': "Try to picture what the word looks like.", 'A': "Sound it out phonetically.", 'R': "Write it down to see if it 'looks right'.", 'K': "Trace the letters with my finger."}},
+        ]
+    },
+    'logical-reasoning': {
+        title: 'Logical Reasoning Challenge',
+        description: 'These puzzles test your logical deduction skills. They are for fun and are not a measure of intelligence.',
+        type: 'scored-quiz',
+        questions: [
+            { text: "If all Zips are Zaps, and some Zaps are Zops, does it mean some Zips are definitely Zops?", options: ["Yes", "No"], answer: "No" },
+            { text: "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?", options: ["10 cents", "5 cents", "1 dollar"], answer: "5 cents" },
+            { text: "Which number should come next in the series? 1, 4, 9, 16, 25, ...", options: ["32", "36", "49"], answer: "36" },
+            { text: "A farmer has 17 sheep, and all but 9 die. How many are left?", options: ["8", "17", "9"], answer: "9" },
+            { text: "If you are running in a race and you pass the person in 2nd place, what place are you in now?", options: ["1st place", "2nd place", "3rd place"], answer: "2nd place" },
+            { text: "What has an eye, but cannot see?", options: ["A potato", "A storm", "A needle"], answer: "A needle" },
+            { text: "If a plane crashes on the border between the USA and Canada, where do you bury the survivors?", options: ["USA", "Canada", "You don't bury survivors"], answer: "You don't bury survivors" }
         ]
     }
 };
