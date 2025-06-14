@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- GLOBAL SCOPE FOR APP ---
+    // --- GLOBAL APP LOGIC ---
     
     // --- THEME MANAGEMENT ---
     function initializeTheme() {
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // --- PAGE-SPECIFIC LOGIC ---
+    // --- PAGE-SPECIFIC HANDLERS ---
     
     // 1. Logic for Index Page (Homepage)
     function handleIndexPage() {
@@ -135,13 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         questionnaireForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // ... (submission logic) ...
-            const totalQuestions = questionnaire.questions.length;
-            const answeredQuestions = questionnaireForm.querySelectorAll('input[type="radio"]:checked').length;
-            if (answeredQuestions < totalQuestions) {
-                alert('Please answer all questions before calculating the score.');
-                return;
-            }
+            
+            // REMOVED: The check that forced all questions to be answered.
 
             if (questionnaire.trait_profile) {
                 calculateTraitProfile(questionnaire, questionnaireForm, resultsContainer);
@@ -194,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
             options.forEach(option => {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
-                radio.type = 'radio'; radio.name = `question-${index}`; radio.value = option.value; radio.required = true;
+                radio.type = 'radio'; radio.name = `question-${index}`; radio.value = option.value;
+                // radio.required = true; // No longer required
                 const span = document.createElement('span');
                 span.textContent = option.text;
                 label.appendChild(radio); label.appendChild(span);
@@ -212,11 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
         bar.style.width = `${progress}%`;
     }
     
-    // --- RESULTS CALCULATION & DISPLAY ---
-    function getInterpretationText(percentage) {
-        if (percentage < 35) { return 'Your score is in the low range. This suggests you experience these traits less frequently than what is typical for this condition. However, if you are still concerned, professional advice is always valuable.';
-        } else if (percentage < 65) { return 'Your score is in the moderate range. This suggests you experience a number of traits associated with this condition. It may be beneficial to explore this further with a mental health professional.';
-        } else { return 'Your score is in the high range. This indicates a strong correlation with the traits of this condition. It is highly recommended that you share these results with a doctor or mental health professional for a formal evaluation.'; }
+    function setAnsweredCount(answered, total, container) {
+        const countElement = container.querySelector('#answered-count');
+        countElement.textContent = `Results based on ${answered} of ${total} questions answered.`;
     }
     
     function calculateSingleResult(questionnaire, form, container) {
@@ -226,26 +220,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         let totalScore = 0, scorableQuestions = 0;
         questionnaire.questions.forEach((q, index) => {
-             if (q.type !== 'safety') {
+             if (q.type !== 'safety' && formData.has(`question-${index}`)) {
                  totalScore += parseInt(formData.get(`question-${index}`), 10);
                  scorableQuestions++;
              }
         });
 
+        setAnsweredCount(scorableQuestions, questionnaire.questions.filter(q => q.type !== 'safety').length, container);
+
         const minScore = scorableQuestions * 1;
         const maxScore = scorableQuestions * 5;
         const percentage = scorableQuestions > 0 ? ((totalScore - minScore) / (maxScore - minScore)) * 100 : 0;
         
-        gaugeContainer.innerHTML = `
-            <div class="gauge-background"></div>
-            <div class="gauge-mask"></div>
-            <div class="gauge-center"></div>
-            <div class="gauge-needle" style="--gauge-rotation: -90deg;"></div>
-            <div class="gauge-value">${percentage.toFixed(0)}%</div>
-        `;
+        gaugeContainer.innerHTML = `<div class="gauge-background"></div><div class="gauge-mask"></div><div class="gauge-center"></div><div class="gauge-needle"></div><div class="gauge-value">${percentage.toFixed(0)}%</div>`;
         gaugeContainer.classList.remove('hidden');
 
-        // Animate the needle
         setTimeout(() => {
             const rotation = (percentage / 100) * 180 - 90;
             gaugeContainer.querySelector('.gauge-needle').style.setProperty('--gauge-rotation', `${rotation}deg`);
@@ -258,18 +247,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const barChartContainer = container.querySelector('#bar-chart-container');
         const resultInterpretation = container.querySelector('#result-interpretation');
         
-        // ... (calculation logic is the same) ...
         const domainScores = {}; const formData = new FormData(form);
         for(const domainKey in questionnaire.domains){ domainScores[domainKey] = { score: 0, count: 0, title: questionnaire.domains[domainKey] }; }
+        
+        let answeredCount = 0;
         form.querySelectorAll('.question-item').forEach((el, index) => {
-            if (el.dataset.domains) {
-                const domains = JSON.parse(el.dataset.domains);
-                const value = parseInt(formData.get(`question-${index}`), 10);
-                domains.forEach(dKey => {
-                    if(domainScores[dKey]){ domainScores[dKey].score += value; domainScores[dKey].count++; }
-                });
+            if (formData.has(`question-${index}`)) {
+                answeredCount++;
+                if (el.dataset.domains) {
+                    const domains = JSON.parse(el.dataset.domains);
+                    const value = parseInt(formData.get(`question-${index}`), 10);
+                    domains.forEach(dKey => {
+                        if(domainScores[dKey]){ domainScores[dKey].score += value; domainScores[dKey].count++; }
+                    });
+                }
             }
         });
+
+        setAnsweredCount(answeredCount, questionnaire.questions.length, container);
         
         barChartContainer.innerHTML = '<h3>Your Trait Profile</h3>';
         barChartContainer.classList.remove('hidden');
@@ -282,13 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const percentage = data.count > 0 ? ((data.score - minScore) / (maxScore - minScore)) * 100 : 0;
             
             const resultItem = document.createElement('div');
-            resultItem.className = 'result-item';
-            resultItem.style.animationDelay = `${delay}ms`;
-            resultItem.innerHTML = `
-                <div class="result-title">${data.title}</div>
-                <div class="result-bar-container"><div class="result-bar" style="width: ${percentage.toFixed(1)}%;"></div></div>
-                <div class="result-percentage">${percentage.toFixed(0)}%</div>
-            `;
+            resultItem.className = 'result-item'; resultItem.style.animationDelay = `${delay}ms`;
+            resultItem.innerHTML = `<div class="result-title">${data.title}</div><div class="result-bar-container"><div class="result-bar" style="width: ${percentage.toFixed(1)}%;"></div></div><div class="result-percentage">${percentage.toFixed(0)}%</div>`;
             barChartContainer.appendChild(resultItem);
             delay += 100;
         }
@@ -301,15 +291,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const resultInterpretation = container.querySelector('#result-interpretation');
         
         const axisScores = {}; const formData = new FormData(form);
+        let answeredCount = 0;
         questionnaire.questions.forEach((q, index) => {
-            if (q.axis) {
-                if (!axisScores[q.axis]) { axisScores[q.axis] = { score: 0, count: 0 }; }
-                const value = parseInt(formData.get(`question-${index}`), 10);
-                axisScores[q.axis].score += value;
-                axisScores[q.axis].count++;
+            if (q.type !== 'safety' && formData.has(`question-${index}`)) {
+                answeredCount++;
+                if (q.axis) {
+                    if (!axisScores[q.axis]) { axisScores[q.axis] = { score: 0, count: 0 }; }
+                    const value = parseInt(formData.get(`question-${index}`), 10);
+                    axisScores[q.axis].score += value;
+                    axisScores[q.axis].count++;
+                }
             }
         });
-        
+
+        setAnsweredCount(answeredCount, questionnaire.questions.filter(q => q.type !== 'safety').length, container);
+
         const labels = Object.keys(axisScores);
         const data = labels.map(label => {
             const axis = axisScores[label];
@@ -324,48 +320,35 @@ document.addEventListener('DOMContentLoaded', () => {
         
         new Chart(ctx, {
             type: 'radar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Symptom Domain Likelihood',
-                    data: data,
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
-                }]
-            },
+            data: { labels, datasets: [{
+                label: 'Symptom Domain Likelihood', data,
+                backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 1)',
+                pointBackgroundColor: 'rgba(59, 130, 246, 1)', pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+            }]},
             options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    r: {
-                        angleLines: { color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
-                        grid: { color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
-                        pointLabels: { font: { size: 12 }, color: isDark ? '#f3f4f6' : '#1f2937' },
-                        ticks: {
-                            backdropColor: 'transparent',
-                            color: isDark ? '#9ca3af' : '#6b7280',
-                            stepSize: 25,
-                            max: 100,
-                            min: 0
-                        }
+                responsive: true, maintainAspectRatio: true,
+                scales: { r: {
+                    angleLines: { color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
+                    grid: { color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
+                    pointLabels: { font: { size: 12 }, color: isDark ? '#f3f4f6' : '#1f2937' },
+                    ticks: {
+                        backdropColor: 'transparent', color: isDark ? '#9ca3af' : '#6b7280',
+                        stepSize: 25, max: 100, min: 0
                     }
-                },
-                plugins: { legend: { display: false } }
+                }},
+                plugins: { legend: { display: false } },
+                animation: { duration: 1000 }
             }
         });
 
-        resultInterpretation.innerHTML = `
-            <strong>Understanding Your Symptom Map:</strong><br>
-            This map visualizes your responses across different domains of mental health. A higher score on an axis (closer to the edge) suggests you reported more traits in that area. <strong>Symptom overlap is very common and normal.</strong> This is a pattern-finding tool, not a diagnostic one. <strong>Use this map as a detailed starting point for a conversation with a qualified professional.</strong>
-        `;
+        resultInterpretation.innerHTML = `<strong>Understanding Your Symptom Map:</strong><br>This map visualizes your responses across different domains of mental health. A higher score on an axis (closer to the edge) suggests you reported more traits in that area. <strong>Symptom overlap is very common and normal.</strong> This is a pattern-finding tool, not a diagnostic one. <strong>Use this map as a detailed starting point for a conversation with a qualified professional.</strong>`;
     }
     
     function copyResultsToClipboard(qId, questionnaire, container) {
         let summaryText = `Mental Health Screener Results for: ${questionnaire.title}\n`;
+        const answeredCountText = container.querySelector('#answered-count').textContent;
+        summaryText += `${answeredCountText}\n`;
         summaryText += "========================================\n\n";
 
         if (qId === 'all-in-one') {
@@ -386,14 +369,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const percentage = item.querySelector('.result-percentage').textContent.trim();
                 summaryText += `- ${title}: ${percentage}\n`;
             });
-        } else {
+        else {
             const score = container.querySelector('.gauge-value').textContent.trim();
             summaryText += `Likelihood Score: ${score}\n`;
         }
 
         summaryText += "\n========================================\n";
         summaryText += "IMPORTANT: These results are from an unofficial online screener and are NOT a diagnosis. They are intended to be a starting point for a conversation with a qualified mental health professional.";
-
+        
         navigator.clipboard.writeText(summaryText).then(() => {
             const copyBtn = document.getElementById('copy-results-btn');
             const originalText = copyBtn.querySelector('span').textContent;
