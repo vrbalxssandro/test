@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questionnaire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <a href="index.html" class="back-link">← Back to All Questionnaires</a>
+            <a href="index.html" class="back-link">← Back to Questionnaire List</a>
             <h1 id="questionnaire-title">Loading...</h1>
         </header>
         
@@ -31,7 +34,10 @@
                 <div id="score-display"></div>
                 <div id="spectrum-profile-container"></div>
                 <div class="disclaimer-box critical">
-                    <h3>Interpreting Your Score</h3>
+                    <div class="disclaimer-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>
+                        <h3>Interpreting Your Score</h3>
+                    </div>
                     <p id="result-interpretation"></p>
                     <p>
                         <strong>Regardless of your score, if you are struggling, it is always a good idea to talk to a professional.</strong> They can provide a comprehensive evaluation that considers your full personal history and context, which this tool cannot do.
