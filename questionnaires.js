@@ -2,9 +2,8 @@
 ================================================================================
                                  CRITICAL WARNING
 ================================================================================
-This file contains all questionnaire data. The data is separated into two main objects:
-'healthQuestionnaires' and 'cognitiveQuizzes'. This separation is crucial for the
-app logic to correctly display tests on the right pages.
+This file contains all questionnaire data. It is a single source of truth for the app.
+Questionnaires are distinguished by the 'isHealth' property.
 ================================================================================
 */
 
@@ -17,6 +16,7 @@ const healthQuestionnaires = {
     'all-in-one': {
         title: 'Comprehensive Symptom Mapper',
         description: 'This is a curated screener designed to identify potential areas of concern across a broad range of conditions. It is not exhaustive. Its purpose is to highlight patterns and symptom overlaps that you can discuss with a professional.',
+        isHealth: true,
         type: 'radar-chart',
         questions: [
             { text: "I feel a persistent sense of sadness, emptiness, or hopelessness.", mapsTo: ['mdd', 'mdd-teen', 'pdd-dysthymia', 'bpd', 'bipolar-spectrum'], axis: 'Mood & Emotion' },
@@ -46,6 +46,7 @@ const healthQuestionnaires = {
     'adhd-adult': {
         title: 'ADHD Screener (Adult)',
         description: 'This screener explores traits of ADHD as they commonly appear in adults. Answer based on your patterns over the last 6 months.',
+        isHealth: true,
         questions: [
             { text: "I make careless mistakes at work or in personal projects because I have trouble sustaining attention to details." },
             { text: "My mind wanders frequently during meetings or long conversations." },
@@ -74,6 +75,7 @@ const healthQuestionnaires = {
     'adhd-teen': {
         title: 'ADHD Screener (Teen)',
         description: 'This screener explores traits of ADHD as they commonly appear in teenagers. Answer based on your patterns over the last 6 months.',
+        isHealth: true,
         questions: [
             { text: "I make careless mistakes on schoolwork, tests, or chores." },
             { text: "My mind wanders frequently during class lectures or while doing homework." },
@@ -101,6 +103,7 @@ const healthQuestionnaires = {
     'autism-spectrum': {
         title: 'Autism Spectrum Trait Profile',
         description: 'Autism is a spectrum. This screener does not provide a "type," but rather a profile of your traits across different domains. Answer based on your entire life experience.',
+        isHealth: true,
         type: 'trait-profile',
         domains: {
             'social': 'Social Communication',
@@ -138,6 +141,7 @@ const healthQuestionnaires = {
     'mdd': {
         title: 'Major Depression Screener (Adult)',
         description: 'MDD is a mood disorder causing a persistent feeling of sadness and loss of interest. Answer based on your feelings over the last 2 weeks.',
+        isHealth: true,
         questions: [
             { text: "I feel a pervasive and profound sadness or emptiness most of the day, almost every day." },
             { text: "I have lost all interest or pleasure in hobbies and activities I used to enjoy." },
@@ -164,6 +168,7 @@ const healthQuestionnaires = {
     'mdd-teen': {
         title: 'Depression Screener (Teen)',
         description: 'Depression in teens can look different, often including irritability and anger. Answer based on your feelings over the last 2 weeks.',
+        isHealth: true,
         questions: [
             { text: "I feel sad, down, or empty most of the time." },
             { text: "I feel irritable, cranky, or angry a lot, even over small things." },
@@ -190,6 +195,7 @@ const healthQuestionnaires = {
     'pdd-dysthymia': {
         title: 'Persistent Depressive Disorder (Dysthymia) Screener',
         description: 'Dysthymia is a chronic form of depression. The feeling of depression lasts for a long time - often for years. Please answer based on your experience over the last 2 years or longer.',
+        isHealth: true,
         questions: [
             { text: "For most days over the last two years (or longer), I have felt a low-grade sadness or emptiness." },
             { text: "I can't remember the last time I felt genuinely happy or excited for an extended period." },
@@ -216,6 +222,7 @@ const healthQuestionnaires = {
     'bipolar-spectrum': {
         title: 'Bipolar Spectrum Screener',
         description: 'Bipolar Disorder is characterized by extreme mood swings that include emotional highs (mania or hypomania) and lows (depression). This screener asks about both types of episodes. Please answer based on your entire life experiences.',
+        isHealth: true,
         questions: [
             { text: "I have had distinct periods of feeling intensely sad, empty, and hopeless, lasting at least two weeks." },
             { text: "During these low periods, I lose all interest in activities I normally enjoy." },
@@ -242,6 +249,7 @@ const healthQuestionnaires = {
     'gad': {
         title: 'General Anxiety Disorder (GAD) Screener',
         description: 'GAD is characterized by persistent and excessive worry about a number of different things. This worry is difficult to control and is often accompanied by physical symptoms. Answer based on the last 6 months.',
+        isHealth: true,
         questions: [
             { text: "I find myself worrying uncontrollably about a wide range of things (e.g., health, money, work, family)." },
             { text: "I have difficulty stopping or controlling my worry; it feels like it takes on a life of its own." },
@@ -268,6 +276,7 @@ const healthQuestionnaires = {
     'social-anxiety': {
         title: 'Social Anxiety Disorder (SAD) Screener',
         description: 'SAD is an intense fear of being watched and judged by others. This fear can affect work, school, and other day-to-day activities. Answer based on your experiences in social settings.',
+        isHealth: true,
         questions: [
             { text: "I am terrified of situations where I might be scrutinized by others." },
             { text: "I worry for days or weeks before a social event." },
@@ -294,6 +303,7 @@ const healthQuestionnaires = {
     'ocd': {
         title: 'Obsessive-Compulsive Disorder (OCD) Screener',
         description: 'OCD is not about being neat or tidy. It involves having obsessions (unwanted, intrusive thoughts, images, or urges that cause distress) and/or compulsions (repetitive behaviors or mental acts that you feel driven to perform to reduce anxiety).',
+        isHealth: true,
         questions: [
             { text: "I am plagued by unwanted, intrusive thoughts or images that I find disturbing or nonsensical." },
             { text: "I worry excessively about contamination (e.g., germs, dirt, chemicals)." },
@@ -320,6 +330,7 @@ const healthQuestionnaires = {
     'ptsd': {
         title: 'Post-Traumatic Stress (PTSD) Screener',
         description: 'PTSD can develop after experiencing or witnessing a terrifying event. This screener asks about symptoms that can occur after trauma. Please answer with a specific traumatic event in mind, if applicable.',
+        isHealth: true,
         questions: [
             { text: "I have unwanted, upsetting memories of the traumatic event." },
             { text: "I have recurrent, distressing dreams or nightmares about the event." },
@@ -346,6 +357,7 @@ const healthQuestionnaires = {
     'bpd': {
         title: 'Borderline Personality (BPD) Trait Screener',
         description: 'BPD is a condition characterized by difficulties with emotional regulation. This is expressed through a pervasive pattern of instability in mood, interpersonal relationships, self-image, and behavior. Please be mindful and gentle with yourself while answering.',
+        isHealth: true,
         questions: [
             { text: "I make frantic efforts to avoid real or imagined abandonment." },
             { text: "My relationships are often intense and unstable, swinging between seeing people as perfect (idealization) and terrible (devaluation)." },
@@ -372,6 +384,7 @@ const healthQuestionnaires = {
     'avpd': {
         title: 'Avoidant Personality (AvPD) Trait Screener',
         description: 'AvPD is characterized by a pervasive pattern of social inhibition, feelings of inadequacy, and hypersensitivity to negative evaluation. It is a deep-seated belief of being flawed that leads to avoidance of social connection.',
+        isHealth: true,
         questions: [
             { text: "I avoid occupational activities that involve significant interpersonal contact because of fears of criticism, disapproval, or rejection." },
             { text: "I am unwilling to get involved with people unless I am certain of being liked." },
@@ -398,6 +411,7 @@ const healthQuestionnaires = {
     'pd-traits': {
         title: 'General Personality Trait Screener',
         description: 'This is not a diagnostic tool for any specific personality disorder. It is a general screener to identify long-standing, pervasive patterns of thought and behavior that cause distress and may warrant professional evaluation.',
+        isHealth: true,
         questions: [
             { text: "My way of seeing myself, others, and events is often very different from how others see them and has caused me problems." },
             { text: "My emotional responses are often more intense or inappropriate than the situation calls for." },
@@ -425,6 +439,7 @@ const healthQuestionnaires = {
     'insomnia': {
         title: 'Chronic Insomnia Screener',
         description: 'Insomnia is a persistent disorder that can make it hard to fall asleep, hard to stay asleep, or cause you to wake up too early. This is considered chronic when it occurs at least 3 nights per week for 3 months or longer.',
+        isHealth: true,
         questions: [
             { text: "I have difficulty falling asleep when I first go to bed, often lying awake for more than 30 minutes." },
             { text: "I wake up one or more times during the night." },
@@ -451,6 +466,7 @@ const healthQuestionnaires = {
     'arfid': {
         title: 'ARFID Screener',
         description: 'Avoidant/Restrictive Food Intake Disorder (ARFID) is an eating disturbance that is not driven by body image concerns. It involves avoidance due to sensory issues, lack of interest, or fear of aversive consequences.',
+        isHealth: true,
         questions: [
             { text: "My diet is extremely limited to a small number of 'safe' foods." },
             { text: "I avoid foods with certain textures, smells, or appearances." },
@@ -477,6 +493,7 @@ const healthQuestionnaires = {
     'dsps': {
         title: 'Delayed Sleep Phase Syndrome (DSPS) Screener',
         description: 'DSPS is a circadian rhythm disorder where your internal clock is fundamentally out of sync with the conventional day-night cycle. It is not simply a preference. Answer based on your lifelong sleep patterns.',
+        isHealth: true,
         questions: [
             { text: "If I have no obligations, my body naturally wants to fall asleep very late (e.g., between 2 AM and 6 AM)." },
             { text: "If I have no obligations, I would naturally wake up late in the morning or in the afternoon (e.g., between 10 AM and 2 PM)." },
@@ -503,9 +520,135 @@ const healthQuestionnaires = {
 };
 
 const cognitiveQuizzes = {
+    'iq-proxy': {
+        title: 'Pattern Recognition & Logic Quotient',
+        description: 'This quiz assesses skills in pattern recognition, spatial reasoning, and logical deduction. This is NOT a clinical IQ test, but a challenge for your reasoning abilities. Your score will be shown on a bell curve.',
+        isHealth: false,
+        type: 'bell-curve-quiz',
+        questions: [
+            // Sequence and Pattern Recognition
+            { text: "Which number should come next in the series? 4, 7, 12, 19, 28, ...", options: ["35", "39", "41"], answer: "39" },
+            { text: "Which letter comes next in the sequence? J, F, M, A, M, J, ...", options: ["J", "A", "S"], answer: "J" },
+            { text: "Find the missing number: 8, 27, 64, ?, 216", options: ["100", "125", "150"], answer: "125" },
+            { text: "Which word does not belong? House, Igloo, Bungalow, Office, Hut", options: ["House", "Office", "Hut"], answer: "Office" },
+            { text: "Which is the odd one out? A, E, I, O, B", options: ["E", "O", "B"], answer: "B" },
+            { text: "What number comes next in this sequence: 3, 5, 8, 13, 21, ...?", options: ["29", "34", "36"], answer: "34" }, // Fibonacci
+            { text: "Which letter is the odd one out? Z, T, N, E, F", options: ["Z", "T", "E"], answer: "E" }, // Symmetry
+            { text: "What comes next? O, T, T, F, F, S, S, ...", options: ["E", "N", "T"], answer: "E" }, // One, Two, Three...
+            // Analogies
+            { text: "Book is to Reading as Fork is to:", options: ["Drawing", "Writing", "Eating"], answer: "Eating" },
+            { text: "Oar is to Rowboat as Foot is to:", options: ["Running", "Sneaker", "Kickball"], answer: "Kickball" },
+            { text: "Pyramid is to Egypt as Eiffel Tower is to:", options: ["Rome", "Paris", "London"], answer: "Paris" },
+            { text: "Tree is to Forest as Soldier is to:", options: ["Gun", "Battle", "Army"], answer: "Army" },
+            // Logical Deduction
+            { text: "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?", options: ["10 cents", "5 cents", "1 dollar"], answer: "5 cents" },
+            { text: "If you are running in a race and you pass the person in 2nd place, what place are you in now?", options: ["1st place", "2nd place", "3rd place"], answer: "2nd place" },
+            { text: "A farmer has 17 sheep, and all but 9 die. How many are left?", options: ["8", "17", "9"], answer: "9" },
+            { text: "If a plane crashes on the border between the USA and Canada, where do you bury the survivors?", options: ["USA", "Canada", "You don't bury survivors"], answer: "You don't bury survivors" },
+            { text: "How many months have 28 days?", options: ["1", "All of them", "2"], answer: "All of them" },
+            { text: "What is the next prime number after 13?", options: ["15", "17", "19"], answer: "17" },
+            { text: "Mary's father has five daughters: 1. Nana, 2. Nene, 3. Nini, 4. Nono. What is the name of the fifth daughter?", options: ["Nunu", "Mary", "Nona"], answer: "Mary" },
+            // Spatial reasoning
+            { text: "If you rotate the letter 'd' 90 degrees clockwise, what new letter does it resemble?", options: ["b", "p", "q"], answer: "p" },
+            { text: "Imagine a 3x3 grid (like a tic-tac-toe board). If you start at the top-left square and move one square right, then one square down, then one square left, where are you?", options: ["Center square", "Middle-left square", "Bottom-left square"], answer: "Middle-left square" },
+            { text: "You are looking at a cube. If you can see three faces, and none of them are opposite each other, how many faces are hidden from view?", options: ["3", "4", "2"], answer: "3" },
+            { text: "Which of the following words can be rearranged to spell 'OCEAN'?", options: ["CANOE", "CONE", "ONCE"], answer: "CANOE" },
+            { text: "A man is looking at a portrait. Someone asks him whose portrait he is looking at. He replies, 'Brothers and sisters I have none, but that man's father is my father's son.' Who is in the portrait?", options: ["His son", "Himself", "His father"], answer: "His son" },
+            { text: "What has cities, but no houses; forests, but no trees; and water, but no fish?", options: ["A dream", "A map", "A book"], answer: "A map" },
+        ]
+    },
+    'big-five': {
+        title: 'Personality Trait Profile (Big Five)',
+        description: 'This quiz provides a profile based on the Five-Factor Model of personality (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism). This is for self-reflection and is not a clinical assessment.',
+        isHealth: false,
+        type: 'trait-profile',
+        domains: {
+            'O': 'Openness',
+            'C': 'Conscientiousness',
+            'E': 'Extraversion',
+            'A': 'Agreeableness',
+            'N': 'Neuroticism'
+        },
+        questions: [
+            // Openness
+            { text: "I have a rich vocabulary.", domains: ['O'], score: 'normal' },
+            { text: "I have a vivid imagination.", domains: ['O'], score: 'normal' },
+            { text: "I have excellent ideas.", domains: ['O'], score: 'normal' },
+            { text: "I am quick to understand things.", domains: ['O'], score: 'normal' },
+            { text: "I use difficult words.", domains: ['O'], score: 'normal' },
+            { text: "I spend time reflecting on things.", domains: ['O'], score: 'normal' },
+            { text: "I am full of ideas.", domains: ['O'], score: 'normal' },
+            { text: "I do not have a good imagination.", domains: ['O'], score: 'reverse' },
+            // Conscientiousness
+            { text: "I am always prepared.", domains: ['C'], score: 'normal' },
+            { text: "I pay attention to details.", domains: ['C'], score: 'normal' },
+            { text: "I get chores done right away.", domains: ['C'], score: 'normal' },
+            { text: "I like order.", domains: ['C'], score: 'normal' },
+            { text: "I follow a schedule.", domains: ['C'], score: 'normal' },
+            { text: "I am exacting in my work.", domains: ['C'], score: 'normal' },
+            { text: "I leave my belongings around.", domains: ['C'], score: 'reverse' },
+            { text: "I make a mess of things.", domains: ['C'], score: 'reverse' },
+            // Extraversion
+            { text: "I am the life of the party.", domains: ['E'], score: 'normal' },
+            { text: "I don't talk a lot.", domains: ['E'], score: 'reverse' },
+            { text: "I feel comfortable around people.", domains: ['E'], score: 'normal' },
+            { text: "I keep in the background.", domains: ['E'], score: 'reverse' },
+            { text: "I start conversations.", domains: ['E'], score: 'normal' },
+            { text: "I have little to say.", domains: ['E'], score: 'reverse' },
+            { text: "I talk to a lot of different people at parties.", domains: ['E'], score: 'normal' },
+            { text: "I don't like to draw attention to myself.", domains: ['E'], score: 'reverse' },
+            // Agreeableness
+            { text: "I am interested in people.", domains: ['A'], score: 'normal' },
+            { text: "I sympathize with others' feelings.", domains: ['A'], score: 'normal' },
+            { text: "I have a soft heart.", domains: ['A'], score: 'normal' },
+            { text: "I am not really interested in others.", domains: ['A'], score: 'reverse' },
+            { text: "I insult people.", domains: ['A'], score: 'reverse' },
+            { text: "I am not interested in other people's problems.", domains: ['A'], score: 'reverse' },
+            { text: "I feel others' emotions.", domains: ['A'], score: 'normal' },
+            { text: "I make people feel at ease.", domains: ['A'], score: 'normal' },
+            // Neuroticism
+            { text: "I am relaxed most of the time.", domains: ['N'], score: 'reverse' },
+            { text: "I seldom feel blue.", domains: ['N'], score: 'reverse' },
+            { text: "I get stressed out easily.", domains: ['N'], score: 'normal' },
+            { text: "I worry about things.", domains: ['N'], score: 'normal' },
+            { text: "I am easily disturbed.", domains: ['N'], score: 'normal' },
+            { text: "I get upset easily.", domains: ['N'], score: 'normal' },
+            { text: "I change my mood a lot.", domains: ['N'], score: 'normal' },
+            { text: "I have frequent mood swings.", domains: ['N'], score: 'normal' },
+        ]
+    },
+    'general-knowledge': {
+        title: 'General Knowledge Challenge',
+        description: 'Test your knowledge across a variety of domains. How many can you get right?',
+        isHealth: false,
+        type: 'scored-quiz',
+        questions: [
+            { text: "In what year did the Titanic sink?", options: ["1905", "1912", "1918"], answer: "1912" },
+            { text: "What is the capital city of Australia?", options: ["Sydney", "Melbourne", "Canberra"], answer: "Canberra" },
+            { text: "Who wrote 'To Kill a Mockingbird'?", options: ["Harper Lee", "J.K. Rowling", "George Orwell"], answer: "Harper Lee" },
+            { text: "What is the chemical symbol for gold?", options: ["Ag", "Au", "Pb"], answer: "Au" },
+            { text: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter"], answer: "Mars" },
+            { text: "In which country would you find the ancient city of Petra?", options: ["Egypt", "Greece", "Jordan"], answer: "Jordan" },
+            { text: "Who painted the Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci"], answer: "Leonardo da Vinci" },
+            { text: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Pacific"], answer: "Pacific" },
+            { text: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondrion"], answer: "Mitochondrion" },
+            { text: "Who developed the theory of relativity?", options: ["Isaac Newton", "Albert Einstein", "Galileo Galilei"], answer: "Albert Einstein" },
+            { text: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond"], answer: "Diamond" },
+            { text: "How many continents are there?", options: ["5", "6", "7"], answer: "7" },
+            { text: "What is the main ingredient in guacamole?", options: ["Tomato", "Avocado", "Onion"], answer: "Avocado" },
+            { text: "Who was the first person to walk on the Moon?", options: ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong"], answer: "Neil Armstrong" },
+            { text: "Which element does 'O' represent on the periodic table?", options: ["Osmium", "Oxygen", "Gold"], answer: "Oxygen" },
+            { text: "What is the longest river in the world?", options: ["Amazon River", "Nile River", "Yangtze River"], answer: "Nile River" },
+            { text: "What is the currency of Japan?", options: ["Yuan", "Won", "Yen"], answer: "Yen" },
+            { text: "In what mythology is Thor a god?", options: ["Greek", "Roman", "Norse"], answer: "Norse" },
+            { text: "What temperature is the boiling point of water in Celsius?", options: ["100°C", "0°C", "212°C"], answer: "100°C" },
+            { text: "Who is the author of the 'Harry Potter' series?", options: ["J.R.R. Tolkien", "George R.R. Martin", "J.K. Rowling"], answer: "J.K. Rowling" },
+        ]
+    },
     'learning-style': {
         title: 'Learning Style Quiz (VARK model)',
         description: 'This quiz helps you identify your preferred learning style based on the VARK model (Visual, Aural, Read/Write, Kinesthetic). This is for self-reflection and is not a scientifically rigid instrument.',
+        isHealth: false,
         type: 'learning-style',
         questions: [
             { text: "When I'm learning a new skill, I prefer to:", options: {'V': "Watch a video demonstration.", 'A': "Listen to someone explain it.", 'R': "Read the instructions.", 'K': "Just start doing it and figure it out."}},
@@ -520,17 +663,24 @@ const cognitiveQuizzes = {
     'logical-reasoning': {
         title: 'Logical Reasoning Challenge',
         description: 'These puzzles test your logical deduction skills. They are for fun and are not a measure of intelligence.',
+        isHealth: false,
         type: 'scored-quiz',
         questions: [
             { text: "If all Zips are Zaps, and some Zaps are Zops, does it mean some Zips are definitely Zops?", options: ["Yes", "No"], answer: "No" },
-            { text: "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?", options: ["10 cents", "5 cents", "1 dollar"], answer: "5 cents" },
-            { text: "Which number should come next in the series? 1, 4, 9, 16, 25, ...", options: ["32", "36", "49"], answer: "36" },
-            { text: "A farmer has 17 sheep, and all but 9 die. How many are left?", options: ["8", "17", "9"], answer: "9" },
-            { text: "If you are running in a race and you pass the person in 2nd place, what place are you in now?", options: ["1st place", "2nd place", "3rd place"], answer: "2nd place" },
+            { text: "Which is the heaviest? A pound of feathers or a pound of gold?", options: ["Feathers", "Gold", "They weigh the same"], answer: "They weigh the same" },
+            { text: "A man builds a house with four sides, each with a southern exposure. A big bear walks by. What color is the bear?", options: ["Brown", "Black", "White"], answer: "White" }, // It's at the North Pole
+            { text: "I have keys, but open no locks. I have space, but no room. You can enter, but can’t go outside. What am I?", options: ["A piano", "A computer", "A keyboard"], answer: "A keyboard" },
             { text: "What has an eye, but cannot see?", options: ["A potato", "A storm", "A needle"], answer: "A needle" },
-            { text: "If a plane crashes on the border between the USA and Canada, where do you bury the survivors?", options: ["USA", "Canada", "You don't bury survivors"], answer: "You don't bury survivors" }
+            { text: "What is full of holes but still holds water?", options: ["A net", "A sponge", "A strainer"], answer: "A sponge" },
+            { text: "What is always in front of you but can’t be seen?", options: ["The air", "The past", "The future"], answer: "The future" },
+            { text: "A doctor gives you 3 pills and tells you to take one every half hour. How long will the pills last?", options: ["90 minutes", "60 minutes", "30 minutes"], answer: "60 minutes" },
+            { text: "I am an odd number. Take away a letter and I become even. What number am I?", options: ["Five", "Seven", "Nine"], answer: "Seven" },
+            { text: "What has a neck without a head, and a body without legs?", options: ["A bottle", "A shirt", "A snake"], answer: "A bottle" },
+            { text: "What word is spelled incorrectly in every single dictionary?", options: ["Incorrectly", "Misspelled", "Wrong"], answer: "Incorrectly" },
+            { text: "What can you catch, but not throw?", options: ["A ball", "A fish", "A cold"], answer: "A cold" },
+            { text: "What has to be broken before you can use it?", options: ["A promise", "A code", "An egg"], answer: "An egg" },
+            { text: "What goes up but never comes down?", options: ["Smoke", "Your age", "A balloon"], answer: "Your age" },
+            { text: "What can travel all around the world without leaving its corner?", options: ["A plane", "A letter", "A stamp"], answer: "A stamp" }
         ]
     }
 };
-
-const allQuestionnaires = { ...healthQuestionnaires, ...cognitiveQuizzes };
